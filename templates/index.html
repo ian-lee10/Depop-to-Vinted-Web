@@ -24,16 +24,96 @@
 
   <div class="panel">
     {% if error %}<p class="error">{{ error }}</p>{% endif %}
-    <form method="post" action="/listings">
+    <form method="post" action="/listings" id="fetch-form">
       <label for="username">Depop username</label>
       <input id="username" name="username" required placeholder="e.g. yourshopname">
 
       <label for="cookie">Depop session cookie</label>
+
+      <ol class="steps">
+        <li>Log into <strong>depop.com</strong> in this browser (skip if already logged in).</li>
+        <li>Open DevTools: <kbd>Cmd</kbd>+<kbd>Option</kbd>+<kbd>I</kbd> on Mac, <kbd>F12</kbd> on Windows/Linux.</li>
+        <li>Click the <strong>Network</strong> tab, then reload the page (<kbd>Cmd</kbd>+<kbd>R</kbd> / <kbd>F5</kbd>) so requests show up.</li>
+        <li>Click any request in the list (the top one is fine).</li>
+        <li>On the right, open <strong>Headers</strong> → scroll to <strong>Request Headers</strong> → find the line starting with <code>cookie:</code></li>
+        <li>Click that value, select the whole thing, copy it, and paste it below.</li>
+      </ol>
+
+      <details class="visual-guide">
+        <summary>Show me a picture</summary>
+        <svg viewBox="0 0 640 320" xmlns="http://www.w3.org/2000/svg" class="guide-svg">
+          <rect x="1" y="1" width="638" height="318" rx="12" fill="var(--surface-2)" stroke="var(--border)"/>
+          <rect x="1" y="1" width="638" height="34" rx="12" fill="var(--surface)" stroke="var(--border)"/>
+          <circle cx="18" cy="18" r="4" fill="#ef4444"/>
+          <circle cx="32" cy="18" r="4" fill="#f59e0b"/>
+          <circle cx="46" cy="18" r="4" fill="#22c55e"/>
+
+          <text x="90" y="22" font-size="11" fill="var(--text-dim)" font-family="sans-serif">Elements</text>
+          <text x="150" y="22" font-size="11" fill="var(--text-dim)" font-family="sans-serif">Console</text>
+          <rect x="196" y="6" width="70" height="22" rx="6" fill="var(--accent-1)" opacity="0.18"/>
+          <text x="205" y="22" font-size="11" font-weight="700" fill="var(--accent-1)" font-family="sans-serif">Network</text>
+          <text x="278" y="22" font-size="11" fill="var(--text-dim)" font-family="sans-serif">Application</text>
+
+          <rect x="1" y="35" width="180" height="284" fill="var(--surface)"/>
+          <rect x="9" y="47" width="164" height="20" rx="4" fill="var(--accent-1)" opacity="0.15" stroke="var(--accent-1)"/>
+          <text x="14" y="61" font-size="10" fill="var(--text)" font-family="monospace">products/?limit=20</text>
+          <text x="14" y="85" font-size="10" fill="var(--text-dim)" font-family="monospace">shop-header.json</text>
+          <text x="14" y="105" font-size="10" fill="var(--text-dim)" font-family="monospace">avatar.jpg</text>
+          <text x="14" y="125" font-size="10" fill="var(--text-dim)" font-family="monospace">styles.css</text>
+
+          <text x="196" y="52" font-size="11" font-weight="700" fill="var(--text)" font-family="sans-serif">Headers</text>
+          <text x="196" y="74" font-size="10" fill="var(--text-dim)" font-family="sans-serif">Request Headers</text>
+          <text x="196" y="94" font-size="9.5" fill="var(--text-dim)" font-family="monospace">accept: */*</text>
+          <text x="196" y="112" font-size="9.5" fill="var(--text-dim)" font-family="monospace">authority: webapi.depop.com</text>
+
+          <rect x="190" y="122" width="440" height="26" rx="5" fill="var(--accent-3)" opacity="0.15" stroke="var(--accent-3)"/>
+          <text x="196" y="139" font-size="9.5" font-weight="700" fill="var(--accent-3)" font-family="monospace">cookie: dp_sess=eyJhbGciOi...; dp_id=8f21...</text>
+
+          <text x="196" y="166" font-size="9.5" fill="var(--text-dim)" font-family="monospace">user-agent: Mozilla/5.0 ...</text>
+
+          <path d="M560 148 L560 175" stroke="var(--accent-3)" stroke-width="1.5" marker-end="url(#arrow)"/>
+          <text x="470" y="192" font-size="10.5" font-weight="600" fill="var(--accent-3)" font-family="sans-serif">Copy this whole line</text>
+
+          <defs>
+            <marker id="arrow" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto">
+              <path d="M0,0 L8,4 L0,8 Z" fill="var(--accent-3)"/>
+            </marker>
+          </defs>
+        </svg>
+      </details>
+
       <textarea id="cookie" name="cookie" rows="3" required
-        placeholder="Paste the Cookie header value from a logged-in depop.com request (DevTools → Network → any request → Request Headers → Cookie)"></textarea>
-      <p class="hint">Log into depop.com in your browser first, then copy this from DevTools. Used once, never saved.</p>
+        placeholder="Paste the full cookie: line from Request Headers here"></textarea>
+      <p class="hint" id="cookie-hint">Used once for this request only, never saved to disk.</p>
 
       <button type="submit">Fetch my listings →</button>
     </form>
   </div>
+
+  <style>
+    .steps { margin: 10px 0 4px; padding-left: 20px; color: var(--text-dim); font-size: .88rem; }
+    .steps li { margin-bottom: 6px; }
+    .steps strong { color: var(--text); }
+    .steps code { background: var(--surface-2); padding: 1px 5px; border-radius: 4px; font-size: .85em; }
+    kbd {
+      display: inline-block; font-family: inherit; font-size: .82em; font-weight: 600;
+      background: var(--surface-2); border: 1px solid var(--border); border-bottom-width: 2px;
+      padding: 1px 6px; border-radius: 5px; color: var(--text);
+    }
+    .visual-guide { margin: 10px 0 16px; }
+    .visual-guide summary { cursor: pointer; font-size: .85rem; font-weight: 600; color: var(--accent-1); }
+    .guide-svg { width: 100%; height: auto; margin-top: 10px; border-radius: 10px; }
+  </style>
+
+  <script>
+    document.getElementById('fetch-form').addEventListener('submit', function (e) {
+      const val = document.getElementById('cookie').value.trim();
+      if (val.length < 20 || !val.includes('=')) {
+        e.preventDefault();
+        const hint = document.getElementById('cookie-hint');
+        hint.textContent = "That doesn't look like a full cookie line yet - it should be long and contain several name=value pairs separated by semicolons. Re-check step 6 above.";
+        hint.style.color = '#ef4444';
+      }
+    });
+  </script>
 {% endblock %}
