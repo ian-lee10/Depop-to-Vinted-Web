@@ -18,30 +18,33 @@ Then open http://localhost:5050.
 
 ## Using it
 
-1. Log into depop.com in your own browser.
-2. Open DevTools → Network, click any request to depop.com, and copy the
-   `Cookie` request header value.
-3. Paste your Depop username and that cookie into the form.
+The homepage gives you a bookmarklet to drag to your bookmarks bar. Click it
+while you're logged into depop.com, and it fetches your listings *from your
+own browser tab* and opens a new tab here with the formatted drafts.
 
-The cookie is used for a single server-side request to Depop's own web API
-and is never written to disk or logged.
+Depop has no public developer API, and their Cloudflare bot management
+blocks this kind of request when it comes from a server rather than a real
+logged-in browser session — so the fetch has to run client-side. This app's
+server never talks to Depop at all; it only receives the already-fetched
+JSON from the bookmarklet and formats it.
 
 ## Why this design
 
 - **No Vinted automation** — sidesteps Vinted's anti-bot/ToS concerns
   entirely by never logging into or writing to Vinted programmatically.
-- **No stored credentials** — nothing here creates accounts or persists
-  a login; each request brings its own cookie and it's discarded after.
-- **Not hardened for public multi-tenant hosting** — this accepts an
-  arbitrary cookie from whoever loads the page, so don't deploy it on the
-  open internet without adding auth/rate-limiting in front of it. Running
-  it locally, or sharing the repo for others to run locally themselves
-  (like the original CLI tool), is the intended use.
+- **No server-side credential handling** — your Depop session cookie never
+  leaves your browser; the bookmarklet's `fetch()` call uses it directly,
+  and only the resulting product JSON (not the cookie) is sent here.
+- **Not hardened for high-volume public hosting** — the `/from-browser`
+  endpoint has a basic per-IP rate limit and a request-size cap, but no
+  auth. Fine for a personal tool shared with friends; add real rate
+  limiting/auth in front of it before pointing serious traffic at it.
 
 ## If Depop changes its API
 
-`depop.py` hits an undocumented endpoint (`webapi.depop.com`). If listings
-come back empty, open a Depop shop page, check DevTools → Network for the
-`/shop/<user>/products/` request, and update the field names in
-`depop.py::format_listing` to match. `test_depop.py` has a self-check you
-can run after changing it: `python test_depop.py`.
+`depop.py::format_listing` assumes a particular JSON shape for each product
+(price, pictures, brand, etc.) - Depop can change this without notice. If
+fields come back empty, open a Depop shop page, check DevTools → Network for
+the `/shop/<user>/products/` response shape, and update the field names in
+`depop.py::format_listing` to match. `test_depop.py` has a self-check you can
+run after changing it: `python test_depop.py`.

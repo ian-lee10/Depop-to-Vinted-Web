@@ -1,6 +1,6 @@
-"""Runnable self-check for depop.format_listing. Run: python test_depop.py"""
+"""Runnable self-check for depop.py. Run: python test_depop.py"""
 
-from depop import format_listing
+from depop import format_listing, parse_shop_response
 
 SAMPLE_ITEM = {
     "id": 123,
@@ -33,7 +33,27 @@ def test_format_listing_missing_fields():
     assert result["price"] is None
 
 
+def test_parse_shop_response_dict_shape():
+    items = parse_shop_response({"products": [SAMPLE_ITEM]})
+    assert len(items) == 1
+    assert items[0]["title"] == "Vintage denim jacket"
+
+
+def test_parse_shop_response_list_shape():
+    items = parse_shop_response([SAMPLE_ITEM, {"id": 1}])
+    assert len(items) == 2
+
+
+def test_parse_shop_response_garbage():
+    assert parse_shop_response({}) == []
+    assert parse_shop_response({"products": "not-a-list"}) == []
+    assert parse_shop_response([1, "x", None, SAMPLE_ITEM]) == [format_listing(SAMPLE_ITEM)]
+
+
 if __name__ == "__main__":
     test_format_listing()
     test_format_listing_missing_fields()
+    test_parse_shop_response_dict_shape()
+    test_parse_shop_response_list_shape()
+    test_parse_shop_response_garbage()
     print("ok")

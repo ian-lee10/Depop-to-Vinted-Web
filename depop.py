@@ -1,10 +1,13 @@
 """
-Read-only fetch from Depop's unofficial web API, formatted into Vinted-ready
-draft fields. Nothing here writes to Depop or Vinted - it's a copy/paste
+Formats a raw Depop shop-products API response into Vinted-ready draft
+fields. Nothing here writes to Depop or Vinted - it's a copy/paste
 assistant, not an automation bot.
 
-Depop has no public developer API; this hits the same endpoint their own
-web app uses and requires the caller's own logged-in session cookie.
+The actual fetch from Depop's unofficial web API happens in the user's own
+browser (see the bookmarklet built in app.py), not on this server - Depop's
+Cloudflare bot management blocks server-to-server requests to
+webapi.depop.com regardless of cookie validity, so a real browser session
+is the only thing that gets through.
 
 VERIFY BEFORE RELYING ON THIS: Depop can change response shapes without
 notice. If fields come back empty, open a shop page in a browser, check
@@ -13,19 +16,6 @@ key names below to match.
 """
 
 from __future__ import annotations
-
-import re
-
-import requests
-
-BASE_URL = "https://webapi.depop.com/api/v2"
-SHOP_ITEMS_PATH = "/shop/{username}/products/"
-USERNAME_RE = re.compile(r"^[A-Za-z0-9_.-]{1,50}$")
-
-HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
-                  "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36",
-}
 
 
 def format_listing(item: dict) -> dict:
@@ -51,23 +41,8 @@ def format_listing(item: dict) -> dict:
     }
 
 
-def fetch_listings(username: str, cookie: str) -> list[dict]:
-    """Read-only. Requires the caller's own Depop session cookie - never stored."""
-    if not USERNAME_RE.match(username):
-        raise ValueError("Username can only contain letters, numbers, '.', '_', '-'.")
-
-    session = requests.Session()
-    session.headers.update(HEADERS)
-    session.headers["Cookie"] = cookie
-
-    try:
-        resp = session.get(BASE_URL + SHOP_ITEMS_PATH.format(username=username), timeout=20)
-    except requests.exceptions.InvalidHeader:
-        # Deliberately not chaining/including the original exception - its
-        # message embeds the raw cookie value, which must never reach the
-        # rendered error page.
-        raise ValueError("That cookie has invalid characters in it - re-copy it from DevTools.")
-    resp.raise_for_status()
-    data = resp.json()
-    raw_items = data.get("products", data if isinstance(data, list) else [])
-    return [format_listing(item) for item in raw_items]
+def parse_shop_response(payload: dict | list) -> list[dict]:
+    raw_items = payload.get("products", payload if isinstance(payload, list) else []) if isinstance(payload, dict) else payload
+    if not isinstance(raw_items, list):
+        raw_items = []
+    return [format_listing(item) for item in raw_items if isinstance(item, dict)]
