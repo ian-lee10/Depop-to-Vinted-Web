@@ -68,8 +68,10 @@ var amount = parseFloat(priceText.replace(/[^0-9.]/g,'')) || 0;
 var descNode = doc.querySelector('p[class*="textWrapper"]');
 var h1 = doc.querySelector('h1');
 var description = descNode ? descNode.textContent.trim() : (h1 ? h1.textContent.trim() : '');
-var brandLink = doc.querySelector('a[class*="linkAttribute"]') || doc.querySelectorAll('a[class*="breadcrumbLink"]')[1];
+var brandLink = doc.querySelector('a[class*="linkAttribute"]');
 var brand = brandLink ? brandLink.textContent.trim() : '';
+var sizeMatch = description.match(/\\bsize\\s*:?\\s*(extra\\s*small|extra\\s*large|xxs|xs|small|medium|large|xxl|xl|s|m|l)\\b/i);
+var size = sizeMatch ? sizeMatch[1].trim() : '';
 var imgs = Array.from(doc.querySelectorAll('img[src*="media-photos.depop.com"]'));
 var photos = priceNode
   ? [].concat.apply([], [imgs.filter(function(img){return (img.compareDocumentPosition(priceNode) & Node.DOCUMENT_POSITION_FOLLOWING);})]).map(function(i){return i.src;})
@@ -77,7 +79,7 @@ var photos = priceNode
 photos = photos.filter(function(u){return /\\/P\\d+\\.(jpg|jpeg|png|webp)/i.test(u);});
 photos = photos.filter(function(u, idx){return photos.indexOf(u)===idx;});
 var slug = (href.match(/\\/products\\/([^/]+)\\//)||[])[1] || '';
-return {slug:slug, description:description, price:{priceAmount:amount, currencyIsoCode:currency}, brand:{name:brand}, size:'', condition:'', pictures:photos.map(function(u){return {originalUrl:u};})};
+return {slug:slug, description:description, price:{priceAmount:amount, currencyIsoCode:currency}, brand:{name:brand}, size:size, condition:'', pictures:photos.map(function(u){return {originalUrl:u};})};
 }
 function collectHrefs(){
 var links = Array.from(document.querySelectorAll('a[href*="/products/"]'));
