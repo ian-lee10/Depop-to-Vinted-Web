@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block body %}
+  <h1>{{ items|length }} listing{{ 's' if items|length != 1 }} for @{{ username }}</h1>
+  <p class="lede"><a href="/">&larr; fetch a different shop</a></p>
+
+  <style>
+    .grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
+    .card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); box-shadow: var(--shadow);
+      padding: 20px; overflow: hidden;
+    }
+    .card-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+    .card-title { font-weight: 700; font-size: 1rem; text-decoration: none; color: var(--text); }
+    .price-tag {
+      flex: none; font-weight: 700; font-size: .85rem; color: #fff;
+      background: linear-gradient(120deg, var(--accent-1), var(--accent-3));
+      padding: 5px 12px; border-radius: 999px;
+    }
+    .photos { display: flex; gap: 8px; flex-wrap: wrap; margin: 14px 0; }
+    .photos a { display: block; border-radius: 10px; overflow: hidden; border: 1px solid var(--border); }
+    .photos img { width: 84px; height: 84px; object-fit: cover; display: block; transition: transform .15s; }
+    .photos img:hover { transform: scale(1.06); }
+    .draft {
+      white-space: pre-wrap; background: var(--surface-2); border: 1px solid var(--border);
+      padding: 14px; border-radius: 10px; font-size: .85rem; color: var(--text-dim);
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+    .copy-btn { margin-top: 14px; padding: 9px 18px; font-size: .82rem; }
+    .copy-btn.copied { background: linear-gradient(120deg, #22c55e, #16a34a); }
+    .empty { color: var(--text-dim); }
+  </style>
+
+  <div class="grid">
+    {% for item in items %}
+    <div class="card">
+      <div class="card-head">
+        <a class="card-title" href="{{ item.url }}" target="_blank">{{ item.title }}</a>
+        {% if item.price %}<span class="price-tag">{{ item.currency }} {{ item.price }}</span>{% endif %}
+      </div>
+
+      {% if item.photos %}
+      <div class="photos">
+        {% for photo in item.photos %}
+          <a href="{{ photo }}" target="_blank"><img src="{{ photo }}" alt=""></a>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <div class="draft" id="draft-{{ loop.index }}">Title: {{ item.title }}
+Description: {{ item.description }}
+Price: {{ item.currency }} {{ item.price }}
+Brand: {{ item.brand }}
+Size: {{ item.size }}
+Condition: {{ item.condition }}</div>
+      <button class="copy-btn" onclick="copyDraft(this, {{ loop.index }})">Copy for Vinted</button>
+    </div>
+    {% else %}
+    <p class="empty">No listings found. Double-check the username and that the cookie is from a session logged into that shop.</p>
+    {% endfor %}
+  </div>
+
+  <script>
+    function copyDraft(btn, i) {
+      const text = document.getElementById('draft-' + i).innerText;
+      navigator.clipboard.writeText(text);
+      const original = btn.textContent;
+      btn.textContent = 'Copied ✓';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = original; btn.classList.remove('copied'); }, 1500);
+    }
+  </script>
+{% endblock %}
