@@ -79,10 +79,27 @@ photos = photos.filter(function(u, idx){return photos.indexOf(u)===idx;});
 var slug = (href.match(/\\/products\\/([^/]+)\\//)||[])[1] || '';
 return {slug:slug, description:description, price:{priceAmount:amount, currencyIsoCode:currency}, brand:{name:brand}, size:'', condition:'', pictures:photos.map(function(u){return {originalUrl:u};})};
 }
+function collectHrefs(){
 var links = Array.from(document.querySelectorAll('a[href*="/products/"]'));
 var seen = {}; var hrefs = [];
 links.forEach(function(a){var h=a.getAttribute('href'); if(h && !seen[h]){seen[h]=1; hrefs.push(h);}});
-hrefs = hrefs.slice(0, 40);
+return hrefs;
+}
+var MAX_ITEMS = 300, MAX_SCROLL_ITERS = 60;
+function autoScrollThenRun(){
+var iters = 0, lastCount = -1, stableChecks = 0;
+(function step(){
+var count = collectHrefs().length;
+if(count === lastCount) stableChecks++; else stableChecks = 0;
+lastCount = count;
+iters++;
+if(stableChecks >= 2 || iters >= MAX_SCROLL_ITERS || count >= MAX_ITEMS){ runExtraction(); return; }
+window.scrollTo(0, document.body.scrollHeight);
+setTimeout(step, 700);
+})();
+}
+function runExtraction(){
+var hrefs = collectHrefs().slice(0, MAX_ITEMS);
 if(hrefs.length===0){alert('Depop to Vinted: go to your shop page (depop.com/yourusername) first, then click this bookmark.'); return;}
 var m = location.pathname.match(/^\\/([A-Za-z0-9_.-]+)\\/?$/);
 var username = m ? m[1] : (prompt('Your Depop username?') || 'your-shop');
@@ -97,6 +114,8 @@ var i=document.createElement('input');i.type='hidden';i.name='data';i.value=JSON
 var j=document.createElement('input');j.type='hidden';j.name='username';j.value=username;f.appendChild(j);
 document.body.appendChild(f);f.submit();
 }).catch(function(e){alert('Depop to Vinted: '+e.message);});
+}
+autoScrollThenRun();
 })();"""
 
 
