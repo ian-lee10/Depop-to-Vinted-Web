@@ -34,6 +34,14 @@ def _rate_limited(ip: str) -> bool:
     return False
 
 
+def _client_ip() -> str:
+    # Render fronts every app with Cloudflare, which adds its own hop on top
+    # of Render's internal proxy - ProxyFix's single-hop X-Forwarded-For
+    # parsing can't reliably peel both, so prefer Cloudflare's own header
+    # (set by Cloudflare itself, not client-controlled) when present.
+    return request.headers.get("CF-Connecting-IP") or request.remote_addr or "unknown"
+
+
 @app.route("/")
 def index():
     return render_template("index.html")
@@ -41,7 +49,7 @@ def index():
 
 @app.route("/listings", methods=["POST"])
 def listings():
-    if _rate_limited(request.remote_addr):
+    if _rate_limited(_client_ip()):
         return render_template("index.html", error="Too many requests from your IP - try again in a bit."), 429
 
     username = request.form.get("username", "").strip()
@@ -51,6 +59,8 @@ def listings():
 
     try:
         items = fetch_listings(username, cookie)
+    except ValueError as e:
+        return render_template("index.html", error=str(e))
     except requests.HTTPError as e:
         return render_template("index.html", error=f"Depop request failed: {e}")
     except requests.RequestException as e:

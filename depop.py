@@ -14,10 +14,13 @@ key names below to match.
 
 from __future__ import annotations
 
+import re
+
 import requests
 
 BASE_URL = "https://webapi.depop.com/api/v2"
 SHOP_ITEMS_PATH = "/shop/{username}/products/"
+USERNAME_RE = re.compile(r"^[A-Za-z0-9_.-]{1,50}$")
 
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
@@ -50,10 +53,20 @@ def format_listing(item: dict) -> dict:
 
 def fetch_listings(username: str, cookie: str) -> list[dict]:
     """Read-only. Requires the caller's own Depop session cookie - never stored."""
+    if not USERNAME_RE.match(username):
+        raise ValueError("Username can only contain letters, numbers, '.', '_', '-'.")
+
     session = requests.Session()
     session.headers.update(HEADERS)
     session.headers["Cookie"] = cookie
-    resp = session.get(BASE_URL + SHOP_ITEMS_PATH.format(username=username), timeout=20)
+
+    try:
+        resp = session.get(BASE_URL + SHOP_ITEMS_PATH.format(username=username), timeout=20)
+    except requests.exceptions.InvalidHeader:
+        # Deliberately not chaining/including the original exception - its
+        # message embeds the raw cookie value, which must never reach the
+        # rendered error page.
+        raise ValueError("That cookie has invalid characters in it - re-copy it from DevTools.")
     resp.raise_for_status()
     data = resp.json()
     raw_items = data.get("products", data if isinstance(data, list) else [])
