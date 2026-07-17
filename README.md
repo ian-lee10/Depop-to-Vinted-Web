@@ -1,50 +1,85 @@
 # Depop → Vinted draft assistant
 
-A small Flask site that reads your active Depop listings and formats each one
-as copy/paste-ready text (title, description, price, brand, size, condition)
-plus photo links — so you can paste it into a new Vinted listing yourself.
+**Live: https://depop-to-vinted-web.onrender.com**
 
-**It does not touch Vinted at all, and it does not post anything to Depop.**
-It's a formatter, not a bot.
+Reads your active Depop listings and formats each one as copy/paste-ready
+text (title, description, price, brand, size where the seller spelled it
+out) plus photo links — so you can paste it into a new Vinted listing
+yourself.
 
-## Run it
+**No login. No cookie. No Vinted automation.** It only reads Depop's public
+shop/product pages and never touches Vinted at all.
+
+## Using it
+
+1. Go to the [live site](https://depop-to-vinted-web.onrender.com) and drag
+   the bookmarklet to your bookmarks bar.
+2. Go to **your own Depop shop page** (`depop.com/yourusername` — the page
+   showing your listing grid).
+3. Click the bookmark. It scrolls through your shop to pick up every
+   listing, reads each product's own page, and shows the formatted drafts
+   right in that tab.
+
+## Run it locally
 
 ```bash
 pip install -r requirements.txt
 python app.py
 ```
 
-Then open http://localhost:5050.
+Then open http://localhost:5050 — the bookmarklet it generates points at
+whatever host is serving the page, so a locally-run copy gives you a
+bookmarklet wired to `localhost`.
 
-## Using it
+## How it actually works
 
-The homepage gives you a bookmarklet to drag to your bookmarks bar. Click it
-while you're logged into depop.com, and it fetches your listings *from your
-own browser tab* and opens a new tab here with the formatted drafts.
+Depop has no public developer API. Two things ruled out the obvious
+approaches:
 
-Depop has no public developer API, and their Cloudflare bot management
-blocks this kind of request when it comes from a server rather than a real
-logged-in browser session — so the fetch has to run client-side. This app's
-server never talks to Depop at all; it only receives the already-fetched
-JSON from the bookmarklet and formats it.
+- Their Cloudflare bot management blocks server-to-server requests to their
+  internal API (`webapi.depop.com`) regardless of cookie validity —
+  confirmed: it returns a Cloudflare bot-management block page, not an
+  app-level error.
+- That same API also has no CORS allowance for browser-side calls either —
+  confirmed via a live console error when called from an actual depop.com
+  page.
+
+So instead, this reads Depop's own public, server-rendered HTML: the
+bookmarklet runs on your shop page, scrolls to load every listing (Depop
+lazy-loads the grid), then does a same-origin `fetch()` to each product's
+own page and parses out title/description/brand/price/photos with
+`DOMParser`. Same-origin fetches aren't subject to CORS at all, and
+shop/product pages are public — no login or cookie needed anywhere in this.
+
+The server side (`/from-browser`) never talks to Depop — it only receives
+the already-extracted data from the bookmarklet and formats it for display.
+
+## What's not available
+
+- **Condition** isn't exposed as structured data on these pages at all —
+  left blank.
+- **Size** is usually spelled out in the seller's own title text ("size
+  medium", "size XL"), so it's pulled out with a best-effort regex — not
+  always present if the seller didn't write it that way.
+- **Brand** is blank for items Depop categorizes as "Other"/unbranded —
+  that reflects Depop's own data, not a scraping gap.
 
 ## Why this design
 
 - **No Vinted automation** — sidesteps Vinted's anti-bot/ToS concerns
   entirely by never logging into or writing to Vinted programmatically.
-- **No server-side credential handling** — your Depop session cookie never
-  leaves your browser; the bookmarklet's `fetch()` call uses it directly,
-  and only the resulting product JSON (not the cookie) is sent here.
-- **Not hardened for high-volume public hosting** — the `/from-browser`
-  endpoint has a basic per-IP rate limit and a request-size cap, but no
-  auth. Fine for a personal tool shared with friends; add real rate
-  limiting/auth in front of it before pointing serious traffic at it.
+- **No credentials involved at all** — nothing here ever sees a Depop
+  password or session cookie; it only reads pages that are public anyway.
+- **Not hardened for high-volume public hosting** — `/from-browser` has a
+  basic per-IP rate limit and a request-size cap, but no auth. Fine for a
+  personal tool shared with friends; add real rate limiting/auth in front
+  of it before pointing serious traffic at it.
 
-## If Depop changes its API
+## If Depop changes its page layout
 
-`depop.py::format_listing` assumes a particular JSON shape for each product
-(price, pictures, brand, etc.) - Depop can change this without notice. If
-fields come back empty, open a Depop shop page, check DevTools → Network for
-the `/shop/<user>/products/` response shape, and update the field names in
-`depop.py::format_listing` to match. `test_depop.py` has a self-check you can
-run after changing it: `python test_depop.py`.
+The scraping selectors live in `app.py`'s `BOOKMARKLET_TEMPLATE` — mainly
+CSS-module class-name substrings (`linkAttribute`, `textWrapper`) and the
+`/P<n>.jpg` product-photo filename pattern. These are the most likely
+things to break if Depop ships a redesign. `depop.py::format_listing` just
+reshapes whatever the bookmarklet already extracted; `test_depop.py` has a
+self-check to run after changing either: `python test_depop.py`.
