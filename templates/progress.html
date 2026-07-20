@@ -19,11 +19,44 @@
     var targetLabel = target.charAt(0).toUpperCase() + target.slice(1);
     var count = 0;
 
+    function flashCopied(btn) {
+      var original = btn.textContent;
+      btn.textContent = '✓ Copied';
+      btn.classList.add('copied');
+      setTimeout(function () { btn.textContent = original; btn.classList.remove('copied'); }, 1200);
+    }
+
+    function copyButton(text, small) {
+      var btn = document.createElement('button');
+      btn.className = small ? 'field-copy-btn' : 'copy-btn';
+      btn.textContent = small ? 'Copy' : ('Copy all for ' + targetLabel);
+      btn.disabled = !text;
+      btn.onclick = function () {
+        navigator.clipboard.writeText(text);
+        flashCopied(btn);
+      };
+      return btn;
+    }
+
+    function fieldRow(label, value) {
+      var row = document.createElement('div');
+      row.className = 'field-row';
+      var lbl = document.createElement('span');
+      lbl.className = 'field-label';
+      lbl.textContent = label;
+      var val = document.createElement('span');
+      val.className = 'field-value';
+      val.textContent = value || '—';
+      row.appendChild(lbl);
+      row.appendChild(val);
+      row.appendChild(copyButton(value || '', true));
+      return row;
+    }
+
     function buildCard(item) {
       var title = (item.description || '').split('\n')[0].slice(0, 80) || '(untitled)';
       var priceText = item.price != null ? ((item.currency || '') + ' ' + item.price) : '';
       count++;
-      var id = 'draft-' + count;
 
       var card = document.createElement('div');
       card.className = 'card';
@@ -58,29 +91,38 @@
         card.appendChild(photosDiv);
       }
 
-      var draft = document.createElement('div');
-      draft.className = 'draft';
-      draft.id = id;
-      draft.textContent =
+      var descBlock = document.createElement('div');
+      descBlock.className = 'field-block';
+      var descHead = document.createElement('div');
+      descHead.className = 'field-block-head';
+      var descLbl = document.createElement('span');
+      descLbl.className = 'field-label';
+      descLbl.textContent = 'Description';
+      descHead.appendChild(descLbl);
+      descHead.appendChild(copyButton(item.description || '', true));
+      descBlock.appendChild(descHead);
+      var descText = document.createElement('div');
+      descText.className = 'draft';
+      descText.textContent = item.description || '';
+      descBlock.appendChild(descText);
+      card.appendChild(descBlock);
+
+      var fields = document.createElement('div');
+      fields.className = 'field-rows';
+      fields.appendChild(fieldRow('Price', priceText));
+      fields.appendChild(fieldRow('Brand', item.brand));
+      fields.appendChild(fieldRow('Size', item.size));
+      fields.appendChild(fieldRow('Condition', item.condition));
+      card.appendChild(fields);
+
+      var fullDraft =
         'Title: ' + title + '\n' +
         'Description: ' + (item.description || '') + '\n' +
         'Price: ' + priceText + '\n' +
         'Brand: ' + (item.brand || '') + '\n' +
         'Size: ' + (item.size || '') + '\n' +
         'Condition: ' + (item.condition || '');
-      card.appendChild(draft);
-
-      var btn = document.createElement('button');
-      btn.className = 'copy-btn';
-      btn.textContent = 'Copy for ' + targetLabel;
-      btn.onclick = function () {
-        navigator.clipboard.writeText(document.getElementById(id).innerText);
-        var original = btn.textContent;
-        btn.textContent = 'Copied ✓';
-        btn.classList.add('copied');
-        setTimeout(function () { btn.textContent = original; btn.classList.remove('copied'); }, 1500);
-      };
-      card.appendChild(btn);
+      card.appendChild(copyButton(fullDraft, false));
 
       return card;
     }

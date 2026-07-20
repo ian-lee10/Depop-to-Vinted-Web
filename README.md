@@ -20,9 +20,12 @@ bookmarklets, one per direction:
 2. Go to **your own Depop shop page** (`depop.com/yourusername` — the page
    showing your listing grid).
 3. Click the bookmark. It immediately opens a second tab that fills in
-   live as it goes: a progress bar, then each listing's draft card
-   (photos, copy/paste text, a working copy button) as it's read. Your
-   Depop tab is left untouched throughout.
+   live as it goes: a progress bar, then each listing's draft card as
+   it's read - photos, description, and a copy button next to every
+   individual field (price, brand, size, condition) so you can paste
+   each straight into the matching field on the other site's listing
+   form, rather than one big block you'd have to split apart yourself.
+   Your Depop tab is left untouched throughout.
 
 **Vinted → Depop**
 1. Drag the "Vinted to Depop" bookmarklet to your bookmarks bar.

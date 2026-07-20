@@ -151,7 +151,27 @@
     }
     .copy-btn { margin-top: 14px; padding: 9px 18px; font-size: .82rem; }
     .copy-btn.copied { background: linear-gradient(120deg, #22c55e, #16a34a); }
+    .copy-btn:disabled { opacity: .4; cursor: not-allowed; box-shadow: none; }
     .empty { color: var(--text-dim); }
+
+    .field-block { margin-top: 14px; }
+    .field-block-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+    .field-rows { margin-top: 14px; display: flex; flex-direction: column; gap: 8px; }
+    .field-row {
+      display: flex; align-items: center; gap: 10px;
+      background: var(--surface-2); border: 1px solid var(--border);
+      border-radius: 8px; padding: 8px 12px;
+    }
+    .field-label { font-size: .78rem; font-weight: 700; color: var(--text-dim); width: 72px; flex: none; }
+    .field-value { font-size: .85rem; color: var(--text); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .field-copy-btn {
+      flex: none; font-size: .75rem; font-weight: 600; padding: 5px 10px; border-radius: 6px;
+      background: var(--surface); color: var(--accent-1); border: 1px solid var(--border);
+      box-shadow: none;
+    }
+    .field-copy-btn:hover { filter: none; background: var(--border); }
+    .field-copy-btn.copied { background: linear-gradient(120deg, #22c55e, #16a34a); color: #fff; border-color: transparent; }
+    .field-copy-btn:disabled { opacity: .35; cursor: not-allowed; }
 
     .progress-track { background: var(--surface-2); border-radius: 999px; height: 10px; overflow: hidden; }
     .progress-fill { background: linear-gradient(120deg, var(--accent-1), var(--accent-2)); height: 100%; transition: width .3s; }
