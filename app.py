@@ -117,13 +117,16 @@ function fetchAllWardrobePages(){
 var perPage = 50, all = [];
 function loadPage(page){
 return fetch('/api/v2/wardrobe/'+userId+'/items?page='+page+'&per_page='+perPage+'&order=relevance')
-.then(function(r){ return r.ok ? r.json() : {items:[]}; })
+.then(function(r){
+if(!r.ok){ throw new Error('Vinted API returned HTTP '+r.status+' on page '+page+' - try again in a bit, or make sure you\\'re logged in.'); }
+return r.json();
+})
 .then(function(data){
 var items = (data && data.items) || [];
 all = all.concat(items);
 if(items.length >= perPage){ return loadPage(page+1); }
 return all;
-}).catch(function(){ return all; });
+});
 }
 return loadPage(1);
 }
