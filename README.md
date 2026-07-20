@@ -45,30 +45,34 @@ bookmarklets wired to `localhost`.
 ## How it actually works
 
 Neither Depop nor Vinted has a public developer API, and neither can be
-read with a plain server-side request:
+read with a plain server-side request - Depop's Cloudflare bot management
+blocks server-to-server requests to their internal API
+(`webapi.depop.com`) regardless of cookie validity (confirmed: it returns a
+Cloudflare bot-management block page, not an app-level error), and that
+same API has no CORS allowance for browser-side calls either (confirmed
+via a live console error). So both bookmarklets run from the user's own
+browser instead, but the two directions found very different underlying
+mechanisms:
 
-- Depop's Cloudflare bot management blocks server-to-server requests to
-  their internal API (`webapi.depop.com`) regardless of cookie validity —
-  confirmed: it returns a Cloudflare bot-management block page, not an
-  app-level error. That same API also has no CORS allowance for
-  browser-side calls either — confirmed via a live console error when
-  called from an actual depop.com page.
-- Vinted's per-seller closet grid is rendered client-side only — a plain
-  `fetch()` of the profile URL returns zero item links, confirmed by
-  comparing the raw response against the live, hydrated page.
-
-So both bookmarklets read the shop/closet grid from the already-rendered
-live DOM (scrolling first, since both lazy-load more items as you scroll),
-then fetch each item's page **one at a time, with a short pause between
-requests** — same-origin, no CORS involved — and parse out the draft
-fields:
-
-- **Depop**: parses title/description text, the brand attribute link, and
-  photos with `DOMParser`, using CSS-module class-name substrings since
-  Depop's product pages don't expose clean structured data.
-- **Vinted**: reads a `<script type="application/ld+json">` Product block
-  (name, description, price, brand) plus `data-testid="item-attributes-*"`
-  fields for size/condition — much cleaner structured data than Depop's.
+- **Depop**: the shop grid is server-rendered but only exposes prices and
+  links, so the bookmarklet reads the grid from the live DOM (scrolling
+  first, since it lazy-loads more items as you scroll), then fetches each
+  product's own page **one at a time** (same-origin, no CORS) and parses
+  title/description text, the brand attribute link, and photos with
+  `DOMParser`, using CSS-module class-name substrings since Depop's product
+  pages don't expose clean structured data.
+- **Vinted**: the closet grid turned out to be backed by a clean, same-
+  origin JSON API the page itself calls -
+  `/api/v2/wardrobe/<user_id>/items?page=N&per_page=50` - found by
+  inspecting the page's own network requests. The bookmarklet pages through
+  that directly (looping until a page comes back short) rather than
+  scrolling and scraping the DOM, which gets a complete, accurate item
+  count with clean brand/size/condition/price/photos fields already
+  structured - no more guessing when scroll-based lazy-loading is "done."
+  It still fetches each item's own page once (throttled, same as Depop) to
+  pull the fuller free-text description via a
+  `<script type="application/ld+json">` Product block, since the wardrobe
+  API only returns the short title.
 
 As each item is read, the bookmarklet `postMessage`s it to a window it
 opened at the very start (synchronously, in direct response to the click,
@@ -78,12 +82,14 @@ talks to either marketplace and never sees the scraped data at all beyond
 serving that one static-ish page; everything after the initial load is
 pure client-side rendering in the browser.
 
-The one-at-a-time throttling matters: firing every request at once
-(`Promise.all`) is a big enough burst to trip Vinted's rate limiter (hit
-this myself during testing) - when that happens the fetched page is a
-block page with no product data, so the extractors are written to return
-`null` rather than a fake zeroed-out listing when the expected data isn't
-there.
+The one-at-a-time throttling on the per-item description fetches matters:
+firing every request at once (`Promise.all`) is a big enough burst to trip
+rate limiting on either site (hit this myself testing against Vinted) -
+when that happens the fetched page is a block page with no product data,
+so Depop's extractor returns `null` rather than a fake zeroed-out listing
+when the expected data isn't there (Vinted's already has everything it
+needs from the wardrobe API regardless of whether the description fetch
+succeeds).
 
 ## What's not available
 
@@ -94,8 +100,11 @@ there.
   Depop categorizes as "Other"/unbranded — that reflects Depop's own data,
   not a scraping gap.
 - **Vinted → Depop**: size, condition, and brand come from Vinted's own
-  structured fields, so these are reliably populated whenever the seller
-  set them.
+  wardrobe API fields, so these are reliably populated whenever the seller
+  set them. If the per-item description fetch fails for a given listing
+  (e.g. rate-limited), the draft falls back to just the title rather than
+  dropping the listing entirely - the wardrobe API already has everything
+  else.
 
 ## Why this design
 
@@ -117,8 +126,9 @@ The scraping logic for both directions lives in `app.py`, in
 
 - Depop: CSS-module class-name substrings (`linkAttribute`, `textWrapper`)
   and the `/P<n>.jpg` product-photo filename pattern.
-- Vinted: the `application/ld+json` Product block and the
-  `data-testid="item-attributes-*"` selectors.
+- Vinted: the `/api/v2/wardrobe/<user_id>/items` response shape (title,
+  brand, size, status, price, photos) and, for the fuller description, the
+  `application/ld+json` Product block on each item's own page.
 
 These are the most likely things to break if either site ships a redesign.
 The card-rendering logic (title/draft-text assembly, copy button) lives in
