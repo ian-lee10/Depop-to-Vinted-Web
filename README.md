@@ -74,6 +74,16 @@ mechanisms:
   `<script type="application/ld+json">` Product block, since the wardrobe
   API only returns the short title.
 
+  This API call has been observed returning a 403 for at least one real,
+  logged-in session while working fine anonymously for the same account -
+  looks like a stricter anti-bot/CSRF check for authenticated requests, not
+  reproducible on demand. Rather than chase that further, the Vinted
+  bookmarklet tries the wardrobe API first and, if it fails for any reason,
+  falls back to the same scroll-and-scrape-the-DOM approach Depop uses
+  (`runViaDomScraping` in `VINTED_BOOKMARKLET_TEMPLATE`) - slower and
+  without the API's cleaner size/condition data, but it keeps working when
+  the API path doesn't.
+
 As each item is read, the bookmarklet `postMessage`s it to a window it
 opened at the very start (synchronously, in direct response to the click,
 so popup blockers allow it) - that window, served at `/progress`, renders

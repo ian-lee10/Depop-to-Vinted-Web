@@ -113,12 +113,13 @@ var progressWin = window.open('__BASE_URL__progress?target=depop&username='+enco
 var targetOrigin = '__BASE_URL__'.slice(0, -1);
 function notify(msg){ if(progressWin){ try{ progressWin.postMessage(msg, targetOrigin); }catch(e){} } }
 if(!userId){ alert('Vinted to Depop: go to your closet page (your Vinted profile) first, then click this bookmark.'); return; }
+
 function fetchAllWardrobePages(){
 var perPage = 50, all = [];
 function loadPage(page){
 return fetch('/api/v2/wardrobe/'+userId+'/items?page='+page+'&per_page='+perPage+'&order=relevance')
 .then(function(r){
-if(!r.ok){ throw new Error('Vinted API returned HTTP '+r.status+' on page '+page+' - try again in a bit, or make sure you\\'re logged in.'); }
+if(!r.ok){ throw new Error('wardrobe API HTTP '+r.status); }
 return r.json();
 })
 .then(function(data){
@@ -168,14 +169,91 @@ return new Promise(function(res){ setTimeout(res, 250); });
 }
 return next(0);
 }
-notify({type:'progress', done:0, total:0, username:username});
-fetchAllWardrobePages().then(function(wardrobeItems){
-if(wardrobeItems.length===0){
-alert('Vinted to Depop: no listings found - is this your closet page?');
-return;
-}
-notify({type:'progress', done:0, total:wardrobeItems.length, username:username});
+function runViaWardrobeApi(){
+return fetchAllWardrobePages().then(function(wardrobeItems){
+if(wardrobeItems.length===0){ throw new Error('wardrobe API returned no items'); }
 return enrichOneAtATime(wardrobeItems);
+});
+}
+
+function extractFromItemPage(doc, href){
+var ldEl = doc.querySelector('script[type="application/ld+json"]');
+if(!ldEl){ return null; }
+var ld = {};
+try { ld = JSON.parse(ldEl.textContent); } catch(e) { return null; }
+var name = ld.name || '';
+var descText = ld.description || '';
+var description = name + (descText ? ('\\n' + descText) : '');
+var offers = ld.offers || {};
+var brand = (ld.brand && ld.brand.name) || '';
+var sizeEl = doc.querySelector('[data-testid="item-attributes-size"] [itemprop="size"]');
+var size = sizeEl ? sizeEl.textContent.trim() : '';
+var statusEl = doc.querySelector('[data-testid="item-attributes-status"] [itemprop="status"]');
+var condition = statusEl ? statusEl.textContent.trim() : '';
+var imgs = Array.from(doc.querySelectorAll('img[src*="vinted.net"]')).filter(function(img){
+var a = img.closest('a');
+var isMemberLink = a && /\\/member\\//.test(a.getAttribute('href')||'');
+var w = parseInt(img.getAttribute('width')||'0', 10);
+var h = parseInt(img.getAttribute('height')||'0', 10);
+var isAvatarSized = (w && w <= 120) || (h && h <= 120);
+return !isMemberLink && !isAvatarSized;
+});
+var photos = imgs.map(function(i){return i.src;});
+photos = photos.filter(function(u, idx){return photos.indexOf(u)===idx;});
+var url = href.indexOf('http')===0 ? href : (location.origin + href);
+return {url:url, description:description, price:(offers.price||0), currency:(offers.priceCurrency||'USD'), brand:brand, size:size, condition:condition, photos:photos};
+}
+function collectHrefsFromDOM(){
+var links = Array.from(document.querySelectorAll('a[href*="/items/"]'));
+var seen = {}; var hrefs = [];
+links.forEach(function(a){var h=a.getAttribute('href'); if(h && !seen[h]){seen[h]=1; hrefs.push(h);}});
+return hrefs;
+}
+var MAX_ITEMS = 300, MAX_SCROLL_ITERS = 60;
+function autoScrollThenCollect(){
+return new Promise(function(resolve){
+var iters = 0, lastCount = -1, stableChecks = 0;
+(function step(){
+var count = collectHrefsFromDOM().length;
+if(count === lastCount) stableChecks++; else stableChecks = 0;
+lastCount = count;
+iters++;
+if(stableChecks >= 3 || iters >= MAX_SCROLL_ITERS || count >= MAX_ITEMS){ resolve(collectHrefsFromDOM().slice(0, MAX_ITEMS)); return; }
+window.scrollTo(0, document.body.scrollHeight);
+setTimeout(step, 1000);
+})();
+});
+}
+function fetchItemsOneAtATime(hrefs){
+var results = [];
+function next(idx){
+if(idx >= hrefs.length){ return Promise.resolve(results); }
+return fetch(hrefs[idx]).then(function(r){return r.text();}).then(function(html){
+return extractFromItemPage(new DOMParser().parseFromString(html,'text/html'), hrefs[idx]);
+}).catch(function(){ return null; }).then(function(item){
+results.push(item);
+notify({type:'progress', done:idx+1, total:hrefs.length, username:username});
+if(item){ notify({type:'item', item:item}); }
+return new Promise(function(res){ setTimeout(res, 250); });
+}).then(function(){ return next(idx+1); });
+}
+return next(0);
+}
+function runViaDomScraping(){
+notify({type:'progress', done:0, total:0, username:username});
+return autoScrollThenCollect().then(function(hrefs){
+if(hrefs.length===0){ throw new Error('no listings found - is this your closet page?'); }
+notify({type:'progress', done:0, total:hrefs.length, username:username});
+return fetchItemsOneAtATime(hrefs).then(function(raw){
+var items = raw.filter(Boolean);
+if(items.length===0){ throw new Error('could not read any listings - Vinted may have changed its page layout'); }
+});
+});
+}
+
+notify({type:'progress', done:0, total:0, username:username});
+runViaWardrobeApi().catch(function(apiErr){
+return runViaDomScraping();
 }).then(function(){
 notify({type:'done', username:username});
 }).catch(function(e){alert('Vinted to Depop: '+e.message);});
