@@ -69,9 +69,9 @@ var count = collectHrefs().length;
 if(count === lastCount) stableChecks++; else stableChecks = 0;
 lastCount = count;
 iters++;
-if(stableChecks >= 2 || iters >= MAX_SCROLL_ITERS || count >= MAX_ITEMS){ runExtraction(); return; }
+if(stableChecks >= 3 || iters >= MAX_SCROLL_ITERS || count >= MAX_ITEMS){ runExtraction(); return; }
 window.scrollTo(0, document.body.scrollHeight);
-setTimeout(step, 700);
+setTimeout(step, 1000);
 })();
 }
 function fetchOneAtATime(hrefs, extractor){
@@ -126,7 +126,11 @@ var statusEl = doc.querySelector('[data-testid="item-attributes-status"] [itempr
 var condition = statusEl ? statusEl.textContent.trim() : '';
 var imgs = Array.from(doc.querySelectorAll('img[src*="vinted.net"]')).filter(function(img){
 var a = img.closest('a');
-return !(a && /\\/member\\//.test(a.getAttribute('href')||''));
+var isMemberLink = a && /\\/member\\//.test(a.getAttribute('href')||'');
+var w = parseInt(img.getAttribute('width')||'0', 10);
+var h = parseInt(img.getAttribute('height')||'0', 10);
+var isAvatarSized = (w && w <= 120) || (h && h <= 120);
+return !isMemberLink && !isAvatarSized;
 });
 var photos = imgs.map(function(i){return i.src;});
 photos = photos.filter(function(u, idx){return photos.indexOf(u)===idx;});
@@ -147,9 +151,9 @@ var count = collectHrefs().length;
 if(count === lastCount) stableChecks++; else stableChecks = 0;
 lastCount = count;
 iters++;
-if(stableChecks >= 2 || iters >= MAX_SCROLL_ITERS || count >= MAX_ITEMS){ runExtraction(); return; }
+if(stableChecks >= 3 || iters >= MAX_SCROLL_ITERS || count >= MAX_ITEMS){ runExtraction(); return; }
 window.scrollTo(0, document.body.scrollHeight);
-setTimeout(step, 700);
+setTimeout(step, 1000);
 })();
 }
 function fetchOneAtATime(hrefs, extractor){
