@@ -81,6 +81,7 @@ var photos = priceNode
 photos = photos.filter(function(u){return /\\/P\\d+\\.(jpg|jpeg|png|webp)/i.test(u);});
 photos = photos.filter(function(u, idx){return photos.indexOf(u)===idx;});
 var slug = (href.match(/\\/products\\/([^/]+)\\//)||[])[1] || '';
+if(!priceNode && !description){ return null; }
 return {slug:slug, description:description, price:{priceAmount:amount, currencyIsoCode:currency}, brand:{name:brand}, size:size, condition:'', pictures:photos.map(function(u){return {originalUrl:u};})};
 }
 function collectHrefs(){
@@ -102,16 +103,33 @@ window.scrollTo(0, document.body.scrollHeight);
 setTimeout(step, 700);
 })();
 }
+function fetchOneAtATime(hrefs, extractor){
+var results = [];
+function next(idx){
+if(idx >= hrefs.length){ return Promise.resolve(results); }
+return fetch(hrefs[idx]).then(function(r){return r.text();}).then(function(html){
+return extractor(new DOMParser().parseFromString(html,'text/html'), hrefs[idx]);
+}).catch(function(){ return null; }).then(function(item){
+results.push(item);
+return new Promise(function(res){ setTimeout(res, 250); });
+}).then(function(){ return next(idx+1); });
+}
+return next(0);
+}
 function runExtraction(){
 var hrefs = collectHrefs().slice(0, MAX_ITEMS);
 if(hrefs.length===0){alert('Depop to Vinted: go to your shop page (depop.com/yourusername) first, then click this bookmark.'); return;}
 var m = location.pathname.match(/^\\/([A-Za-z0-9_.-]+)\\/?$/);
 var username = m ? m[1] : (prompt('Your Depop username?') || 'your-shop');
-Promise.all(hrefs.map(function(href){
-return fetch(href).then(function(r){return r.text();}).then(function(html){return extractFromDoc(new DOMParser().parseFromString(html,'text/html'), href);}).catch(function(){return null;});
-})).then(function(items){
-items = items.filter(Boolean);
-if(items.length===0){alert('Depop to Vinted: could not read any listings - Depop may have changed their page layout.'); return;}
+fetchOneAtATime(hrefs, extractFromDoc).then(function(raw){
+var items = raw.filter(Boolean);
+if(items.length===0){
+alert('Depop to Vinted: could not read any listings - either Depop rate-limited these requests (try again in a minute or two) or the page layout changed.');
+return;
+}
+if(items.length < raw.length / 2){
+alert('Depop to Vinted: only got '+items.length+' of '+raw.length+' listings - Depop likely rate-limited some requests. Showing what came through; try again shortly for the rest.');
+}
 var f=document.createElement('form');
 f.method='POST';f.action='__BASE_URL__from-browser';
 var i=document.createElement('input');i.type='hidden';i.name='data';i.value=JSON.stringify({products:items});f.appendChild(i);
@@ -126,8 +144,9 @@ autoScrollThenRun();
 VINTED_BOOKMARKLET_TEMPLATE = """(function(){
 function extractFromDoc(doc, href){
 var ldEl = doc.querySelector('script[type="application/ld+json"]');
+if(!ldEl){ return null; }
 var ld = {};
-try { ld = ldEl ? JSON.parse(ldEl.textContent) : {}; } catch(e) { ld = {}; }
+try { ld = JSON.parse(ldEl.textContent); } catch(e) { return null; }
 var name = ld.name || '';
 var descText = ld.description || '';
 var description = name + (descText ? ('\\n' + descText) : '');
@@ -165,16 +184,33 @@ window.scrollTo(0, document.body.scrollHeight);
 setTimeout(step, 700);
 })();
 }
+function fetchOneAtATime(hrefs, extractor){
+var results = [];
+function next(idx){
+if(idx >= hrefs.length){ return Promise.resolve(results); }
+return fetch(hrefs[idx]).then(function(r){return r.text();}).then(function(html){
+return extractor(new DOMParser().parseFromString(html,'text/html'), hrefs[idx]);
+}).catch(function(){ return null; }).then(function(item){
+results.push(item);
+return new Promise(function(res){ setTimeout(res, 250); });
+}).then(function(){ return next(idx+1); });
+}
+return next(0);
+}
 function runExtraction(){
 var hrefs = collectHrefs().slice(0, MAX_ITEMS);
 if(hrefs.length===0){alert('Vinted to Depop: go to your closet page (your Vinted profile) first, then click this bookmark.'); return;}
 var h1 = document.querySelector('h1');
 var username = h1 ? h1.textContent.trim() : 'your-closet';
-Promise.all(hrefs.map(function(href){
-return fetch(href).then(function(r){return r.text();}).then(function(html){return extractFromDoc(new DOMParser().parseFromString(html,'text/html'), href);}).catch(function(){return null;});
-})).then(function(items){
-items = items.filter(Boolean);
-if(items.length===0){alert('Vinted to Depop: could not read any listings - Vinted may have changed their page layout.'); return;}
+fetchOneAtATime(hrefs, extractFromDoc).then(function(raw){
+var items = raw.filter(Boolean);
+if(items.length===0){
+alert('Vinted to Depop: could not read any listings - either Vinted rate-limited these requests (try again in a minute or two) or the page layout changed.');
+return;
+}
+if(items.length < raw.length / 2){
+alert('Vinted to Depop: only got '+items.length+' of '+raw.length+' listings - Vinted likely rate-limited some requests. Showing what came through; try again shortly for the rest.');
+}
 var f=document.createElement('form');
 f.method='POST';f.action='__BASE_URL__from-browser';
 var i=document.createElement('input');i.type='hidden';i.name='data';i.value=JSON.stringify({products:items});f.appendChild(i);
