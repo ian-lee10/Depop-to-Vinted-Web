@@ -1,16 +1,17 @@
 {% extends "base.html" %}
 {% block body %}
-  <h1>Turn your Depop shop into Vinted-ready drafts</h1>
+  <h1>Cross-list between Depop and Vinted, either direction</h1>
   <p class="lede">
-    Pulls your active Depop listings and formats each one — title, description,
-    price, brand, size, condition, photos — as copy/paste-ready text for Vinted.
-    Nothing is posted anywhere automatically. You stay in control.
+    Reads your active listings on one marketplace and formats each one —
+    title, description, price, brand, size, condition, photos — as
+    copy/paste-ready text for the other. Nothing is posted anywhere
+    automatically. You stay in control.
   </p>
 
   <div class="badges">
     <span class="badge">
       <svg viewBox="0 0 20 20" fill="none"><path d="M10 2 3 5v5c0 4.5 3 7 7 8 4-1 7-3.5 7-8V5l-7-3Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M7 10l2 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      Read-only on Depop
+      Read-only, both directions
     </span>
     <span class="badge">
       <svg viewBox="0 0 20 20" fill="none"><path d="M5 9V7a5 5 0 0110 0v2" stroke="currentColor" stroke-width="1.5"/><rect x="3.5" y="9" width="13" height="8.5" rx="2" stroke="currentColor" stroke-width="1.5"/></svg>
@@ -18,34 +19,65 @@
     </span>
     <span class="badge">
       <svg viewBox="0 0 20 20" fill="none"><path d="M4 10h12M4 6h12M4 14h7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-      Zero Vinted automation
+      Zero automation on either site
     </span>
   </div>
 
   {% if error %}<p class="error">{{ error }}</p>{% endif %}
 
-  <div class="panel">
-    <p class="hint" style="margin-top:0;">
-      No login, no cookie-copying. This runs entirely in your own browser tab -
-      your Depop session never leaves it.
-    </p>
+  <div class="directions">
+    <div class="panel direction-panel">
+      <div class="direction-head">
+        <span class="direction-pill depop">Depop</span>
+        <svg class="arrow" viewBox="0 0 20 20" fill="none"><path d="M4 10h12m0 0-4-4m4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span class="direction-pill vinted">Vinted</span>
+      </div>
 
-    <ol class="steps">
-      <li>
-        Drag this to your bookmarks bar:
-        <a href="{{ bookmarklet }}" class="bookmarklet-btn" onclick="return false;">↳ Depop to Vinted</a>
-      </li>
-      <li>Go to <strong>your own shop page</strong> (depop.com/<em>yourusername</em>) - the page that shows your listing grid.</li>
-      <li>Click the bookmark. This tab will then show your Vinted-ready drafts - use back/forward to return to Depop.</li>
-    </ol>
+      <ol class="steps">
+        <li>
+          Drag this to your bookmarks bar:
+          <a href="{{ depop_bookmarklet }}" class="bookmarklet-btn depop-btn" onclick="return false;">↳ Depop to Vinted</a>
+        </li>
+        <li>Go to <strong>your Depop shop page</strong> (depop.com/<em>yourusername</em>) — the page showing your listing grid.</li>
+        <li>Click the bookmark. This tab will then show your Vinted-ready drafts.</li>
+      </ol>
+    </div>
 
-    <p class="hint">
-      Don't see a bookmarks bar? <kbd>Cmd</kbd>+<kbd>Shift</kbd>+<kbd>B</kbd> on Mac,
-      <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>B</kbd> on Windows/Linux shows it.
-    </p>
+    <div class="panel direction-panel">
+      <div class="direction-head">
+        <span class="direction-pill vinted">Vinted</span>
+        <svg class="arrow" viewBox="0 0 20 20" fill="none"><path d="M4 10h12m0 0-4-4m4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span class="direction-pill depop">Depop</span>
+      </div>
+
+      <ol class="steps">
+        <li>
+          Drag this to your bookmarks bar:
+          <a href="{{ vinted_bookmarklet }}" class="bookmarklet-btn vinted-btn" onclick="return false;">↳ Vinted to Depop</a>
+        </li>
+        <li>Go to <strong>your Vinted closet page</strong> (your profile — the page showing your listing grid).</li>
+        <li>Click the bookmark. This tab will then show your Depop-ready drafts.</li>
+      </ol>
+    </div>
   </div>
 
+  <p class="hint" style="text-align:center; margin-top:18px;">
+    No login, no cookie-copying, either way — this all runs in your own browser tab.
+    Don't see a bookmarks bar? <kbd>Cmd</kbd>+<kbd>Shift</kbd>+<kbd>B</kbd> on Mac,
+    <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>B</kbd> on Windows/Linux shows it.
+  </p>
+
   <style>
+    .directions { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    @media (max-width: 720px) { .directions { grid-template-columns: 1fr; } }
+    .direction-panel { display: flex; flex-direction: column; }
+    .direction-head { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; }
+    .direction-pill {
+      font-weight: 700; font-size: .82rem; padding: 5px 12px; border-radius: 999px; color: #fff;
+    }
+    .direction-pill.depop { background: linear-gradient(120deg, #ff2300, #ff5a3c); }
+    .direction-pill.vinted { background: linear-gradient(120deg, #09b1ba, #1cc9b7); }
+    .arrow { width: 18px; height: 18px; color: var(--text-dim); flex: none; }
     .steps { margin: 10px 0 4px; padding-left: 20px; color: var(--text-dim); font-size: .92rem; }
     .steps li { margin-bottom: 14px; }
     .steps strong { color: var(--text); }
@@ -57,9 +89,9 @@
     .bookmarklet-btn {
       display: inline-flex; align-items: center; gap: 6px;
       margin-left: 8px; font-weight: 700; font-size: .88rem; text-decoration: none;
-      color: #fff; background: linear-gradient(120deg, var(--accent-1), var(--accent-2));
-      padding: 7px 14px; border-radius: 8px; cursor: grab;
-      box-shadow: 0 4px 14px rgba(109,92,245,.3);
+      color: #fff; padding: 7px 14px; border-radius: 8px; cursor: grab;
     }
+    .depop-btn { background: linear-gradient(120deg, #ff2300, #ff5a3c); box-shadow: 0 4px 14px rgba(255,35,0,.3); }
+    .vinted-btn { background: linear-gradient(120deg, #09b1ba, #1cc9b7); box-shadow: 0 4px 14px rgba(9,177,186,.3); }
   </style>
 {% endblock %}

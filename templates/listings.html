@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% block body %}
-  <h1>{{ items|length }} listing{{ 's' if items|length != 1 }} for @{{ username }}</h1>
+  {% set target = target|default('vinted') %}
+  <h1>{{ items|length }} listing{{ 's' if items|length != 1 }} from @{{ username }}, ready for {{ target|capitalize }}</h1>
   <p class="lede"><a href="/">&larr; fetch a different shop</a></p>
 
   <style>
@@ -53,10 +54,10 @@ Price: {{ item.currency }} {{ item.price }}
 Brand: {{ item.brand }}
 Size: {{ item.size }}
 Condition: {{ item.condition }}</div>
-      <button class="copy-btn" onclick="copyDraft(this, {{ loop.index }})">Copy for Vinted</button>
+      <button class="copy-btn" onclick="copyDraft(this, {{ loop.index }})">Copy for {{ target|capitalize }}</button>
     </div>
     {% else %}
-    <p class="empty">No listings found. Double-check the username and that the cookie is from a session logged into that shop.</p>
+    <p class="empty">No listings found - the bookmarklet may not have been run from the right page, or the site layout changed. Try again from your shop/closet page.</p>
     {% endfor %}
   </div>
 

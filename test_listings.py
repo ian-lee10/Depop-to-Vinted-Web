@@ -1,6 +1,6 @@
-"""Runnable self-check for depop.py. Run: python test_depop.py"""
+"""Runnable self-check for listings.py. Run: python test_listings.py"""
 
-from depop import format_listing, parse_shop_response
+from listings import format_listing, parse_shop_response
 
 SAMPLE_ITEM = {
     "id": 123,
@@ -33,6 +33,12 @@ def test_format_listing_missing_fields():
     assert result["price"] is None
 
 
+def test_format_listing_explicit_url():
+    item = {**SAMPLE_ITEM, "url": "https://www.vinted.com/items/123-a-jacket"}
+    result = format_listing(item)
+    assert result["url"] == "https://www.vinted.com/items/123-a-jacket"
+
+
 def test_parse_shop_response_dict_shape():
     items = parse_shop_response({"products": [SAMPLE_ITEM]})
     assert len(items) == 1
@@ -53,6 +59,7 @@ def test_parse_shop_response_garbage():
 if __name__ == "__main__":
     test_format_listing()
     test_format_listing_missing_fields()
+    test_format_listing_explicit_url()
     test_parse_shop_response_dict_shape()
     test_parse_shop_response_list_shape()
     test_parse_shop_response_garbage()

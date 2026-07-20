@@ -1,18 +1,18 @@
 """
-Formats a raw Depop shop-products API response into Vinted-ready draft
-fields. Nothing here writes to Depop or Vinted - it's a copy/paste
-assistant, not an automation bot.
+Formats a raw shop-item payload (from either Depop or Vinted) into draft
+fields for the *other* marketplace. Nothing here writes to Depop or Vinted -
+it's a copy/paste assistant, not an automation bot.
 
-The actual fetch from Depop's unofficial web API happens in the user's own
-browser (see the bookmarklet built in app.py), not on this server - Depop's
-Cloudflare bot management blocks server-to-server requests to
-webapi.depop.com regardless of cookie validity, so a real browser session
-is the only thing that gets through.
+The actual fetch happens in the user's own browser (see the bookmarklets
+built in app.py), not on this server - Depop's Cloudflare bot management
+blocks server-to-server requests regardless of cookie validity, and
+Vinted's per-user closet listing is client-rendered and never appears in a
+plain server-side fetch either. A real browser session is required either
+way, so this module only ever sees data the bookmarklet already extracted.
 
-VERIFY BEFORE RELYING ON THIS: Depop can change response shapes without
-notice. If fields come back empty, open a shop page in a browser, check
-DevTools -> Network -> the /shop/<user>/products/ request, and update the
-key names below to match.
+VERIFY BEFORE RELYING ON THIS: both marketplaces can change their page
+structure without notice. If fields come back empty, open a listing in a
+browser, check DevTools, and update the relevant bookmarklet in app.py.
 """
 
 from __future__ import annotations
@@ -20,7 +20,6 @@ from __future__ import annotations
 
 def format_listing(item: dict) -> dict:
     price = item.get("price") or {}
-    # VERIFY: photo key seen in the wild as "pictures"; Depop has changed this before.
     pictures = item.get("pictures") or []
     photos = [p.get("originalUrl") or p.get("url") for p in pictures if isinstance(p, dict)]
     brand = item.get("brand")
@@ -29,7 +28,7 @@ def format_listing(item: dict) -> dict:
 
     return {
         "id": str(item.get("id") or item.get("slug") or ""),
-        "url": f"https://www.depop.com/products/{item.get('slug', '')}",
+        "url": item.get("url") or f"https://www.depop.com/products/{item.get('slug', '')}",
         "title": (item.get("description") or "").split("\n")[0][:80] or "(untitled)",
         "description": item.get("description", ""),
         "price": price.get("priceAmount"),
