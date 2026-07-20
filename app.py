@@ -61,6 +61,11 @@ def _client_ip() -> str:
 # shaped for parse_shop_response()/format_listing() in listings.py, so that
 # pipeline is shared and doesn't care which marketplace the data came from.
 DEPOP_BOOKMARKLET_TEMPLATE = """(function(){
+var __m = location.pathname.match(/^\\/([A-Za-z0-9_.-]+)\\/?$/);
+var username = __m ? __m[1] : (prompt('Your Depop username?') || 'your-shop');
+var progressWin = window.open('__BASE_URL__progress?target=vinted&username='+encodeURIComponent(username), 'depopVintedResults');
+var targetOrigin = '__BASE_URL__'.slice(0, -1);
+function notify(msg){ if(progressWin){ try{ progressWin.postMessage(msg, targetOrigin); }catch(e){} } }
 function extractFromDoc(doc, href){
 var priceNode = Array.from(doc.querySelectorAll('*')).find(function(el){return el.children.length===0 && /^[$\\u00a3\\u20ac]\\d/.test((el.textContent||'').trim());});
 var priceText = priceNode ? priceNode.textContent.trim() : '';
@@ -111,6 +116,8 @@ return fetch(hrefs[idx]).then(function(r){return r.text();}).then(function(html)
 return extractor(new DOMParser().parseFromString(html,'text/html'), hrefs[idx]);
 }).catch(function(){ return null; }).then(function(item){
 results.push(item);
+notify({type:'progress', done:idx+1, total:hrefs.length, username:username});
+if(item){ notify({type:'item', item:item}); }
 return new Promise(function(res){ setTimeout(res, 250); });
 }).then(function(){ return next(idx+1); });
 }
@@ -119,8 +126,7 @@ return next(0);
 function runExtraction(){
 var hrefs = collectHrefs().slice(0, MAX_ITEMS);
 if(hrefs.length===0){alert('Depop to Vinted: go to your shop page (depop.com/yourusername) first, then click this bookmark.'); return;}
-var m = location.pathname.match(/^\\/([A-Za-z0-9_.-]+)\\/?$/);
-var username = m ? m[1] : (prompt('Your Depop username?') || 'your-shop');
+notify({type:'progress', done:0, total:hrefs.length, username:username});
 fetchOneAtATime(hrefs, extractFromDoc).then(function(raw){
 var items = raw.filter(Boolean);
 if(items.length===0){
@@ -132,6 +138,7 @@ alert('Depop to Vinted: only got '+items.length+' of '+raw.length+' listings - D
 }
 var f=document.createElement('form');
 f.method='POST';f.action='__BASE_URL__from-browser';
+if(progressWin){ f.target='depopVintedResults'; }
 var i=document.createElement('input');i.type='hidden';i.name='data';i.value=JSON.stringify({products:items});f.appendChild(i);
 var j=document.createElement('input');j.type='hidden';j.name='username';j.value=username;f.appendChild(j);
 var k=document.createElement('input');k.type='hidden';k.name='target';k.value='vinted';f.appendChild(k);
@@ -142,6 +149,11 @@ autoScrollThenRun();
 })();"""
 
 VINTED_BOOKMARKLET_TEMPLATE = """(function(){
+var __h1 = document.querySelector('h1');
+var username = __h1 ? __h1.textContent.trim() : 'your-closet';
+var progressWin = window.open('__BASE_URL__progress?target=depop&username='+encodeURIComponent(username), 'depopVintedResults');
+var targetOrigin = '__BASE_URL__'.slice(0, -1);
+function notify(msg){ if(progressWin){ try{ progressWin.postMessage(msg, targetOrigin); }catch(e){} } }
 function extractFromDoc(doc, href){
 var ldEl = doc.querySelector('script[type="application/ld+json"]');
 if(!ldEl){ return null; }
@@ -192,6 +204,8 @@ return fetch(hrefs[idx]).then(function(r){return r.text();}).then(function(html)
 return extractor(new DOMParser().parseFromString(html,'text/html'), hrefs[idx]);
 }).catch(function(){ return null; }).then(function(item){
 results.push(item);
+notify({type:'progress', done:idx+1, total:hrefs.length, username:username});
+if(item){ notify({type:'item', item:item}); }
 return new Promise(function(res){ setTimeout(res, 250); });
 }).then(function(){ return next(idx+1); });
 }
@@ -200,8 +214,7 @@ return next(0);
 function runExtraction(){
 var hrefs = collectHrefs().slice(0, MAX_ITEMS);
 if(hrefs.length===0){alert('Vinted to Depop: go to your closet page (your Vinted profile) first, then click this bookmark.'); return;}
-var h1 = document.querySelector('h1');
-var username = h1 ? h1.textContent.trim() : 'your-closet';
+notify({type:'progress', done:0, total:hrefs.length, username:username});
 fetchOneAtATime(hrefs, extractFromDoc).then(function(raw){
 var items = raw.filter(Boolean);
 if(items.length===0){
@@ -213,6 +226,7 @@ alert('Vinted to Depop: only got '+items.length+' of '+raw.length+' listings - V
 }
 var f=document.createElement('form');
 f.method='POST';f.action='__BASE_URL__from-browser';
+if(progressWin){ f.target='depopVintedResults'; }
 var i=document.createElement('input');i.type='hidden';i.name='data';i.value=JSON.stringify({products:items});f.appendChild(i);
 var j=document.createElement('input');j.type='hidden';j.name='username';j.value=username;f.appendChild(j);
 var k=document.createElement('input');k.type='hidden';k.name='target';k.value='depop';f.appendChild(k);
@@ -228,6 +242,15 @@ def index():
     depop_bookmarklet = "javascript:" + DEPOP_BOOKMARKLET_TEMPLATE.replace("__BASE_URL__", request.url_root).replace("\n", " ")
     vinted_bookmarklet = "javascript:" + VINTED_BOOKMARKLET_TEMPLATE.replace("__BASE_URL__", request.url_root).replace("\n", " ")
     return render_template("index.html", depop_bookmarklet=depop_bookmarklet, vinted_bookmarklet=vinted_bookmarklet)
+
+
+@app.route("/progress")
+def progress():
+    target = request.args.get("target", "vinted").strip().lower()
+    if target not in ("vinted", "depop"):
+        target = "vinted"
+    username = request.args.get("username", "").strip()
+    return render_template("progress.html", target=target, username=username)
 
 
 @app.route("/from-browser", methods=["POST"])

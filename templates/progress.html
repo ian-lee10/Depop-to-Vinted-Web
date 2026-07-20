@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block body %}
+  <h1 id="progress-heading">Reading {{ 'your Depop shop' if target == 'vinted' else 'your Vinted closet' }}{{ ' (@' + username + ')' if username else '' }}…</h1>
+  <p class="lede" id="progress-status">
+    Waiting for the bookmarklet to start — keep the other tab open, this one will fill in as it goes.
+  </p>
+
+  <div class="panel">
+    <div class="progress-track">
+      <div id="progress-bar-fill" class="progress-fill" style="width:0%"></div>
+    </div>
+    <p class="hint" id="progress-count" style="margin-top:10px;">Nothing read yet.</p>
+  </div>
+
+  <div class="preview-grid" id="preview-grid"></div>
+
+  <style>
+    .progress-track { background: var(--surface-2); border-radius: 999px; height: 10px; overflow: hidden; }
+    .progress-fill { background: linear-gradient(120deg, var(--accent-1), var(--accent-2)); height: 100%; transition: width .3s; }
+    .preview-grid { display: grid; grid-template-columns: 1fr; gap: 10px; margin-top: 20px; }
+    .preview-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+      padding: 12px 16px; display: flex; align-items: center; gap: 12px;
+      animation: preview-in .25s ease-out;
+    }
+    @keyframes preview-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+    .preview-card img { width: 44px; height: 44px; object-fit: cover; border-radius: 8px; flex: none; background: var(--surface-2); }
+    .preview-title { font-weight: 600; font-size: .88rem; }
+    .preview-price { margin-left: auto; font-weight: 700; color: var(--accent-1); font-size: .82rem; flex: none; }
+  </style>
+
+  <script>
+    var total = 0, done = 0;
+    window.addEventListener('message', function(e) {
+      var data = e.data || {};
+      if (data.type === 'progress') {
+        total = data.total || 0;
+        done = data.done || 0;
+        var pct = total ? Math.round((done / total) * 100) : 0;
+        document.getElementById('progress-bar-fill').style.width = pct + '%';
+        document.getElementById('progress-count').textContent = done + ' of ' + total + ' listings read';
+        document.getElementById('progress-status').textContent = 'This tab will switch to your formatted drafts once every listing is read.';
+      }
+      if (data.type === 'item' && data.item) {
+        var item = data.item;
+        var title = (item.description || '(untitled)').split('\n')[0];
+        var price = item.price ? ((item.price.currencyIsoCode || '') + ' ' + item.price.priceAmount) : '';
+        var photo = (item.pictures && item.pictures[0] && item.pictures[0].originalUrl) || '';
+        var card = document.createElement('div');
+        card.className = 'preview-card';
+        if (photo) {
+          var img = document.createElement('img');
+          img.src = photo;
+          card.appendChild(img);
+        }
+        var t = document.createElement('span');
+        t.className = 'preview-title';
+        t.textContent = title;
+        card.appendChild(t);
+        var p = document.createElement('span');
+        p.className = 'preview-price';
+        p.textContent = price;
+        card.appendChild(p);
+        document.getElementById('preview-grid').prepend(card);
+      }
+    });
+  </script>
+{% endblock %}
