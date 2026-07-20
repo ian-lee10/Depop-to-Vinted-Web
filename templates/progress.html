@@ -2,66 +2,114 @@
 {% block body %}
   <h1 id="progress-heading">Reading {{ 'your Depop shop' if target == 'vinted' else 'your Vinted closet' }}{{ ' (@' + username + ')' if username else '' }}…</h1>
   <p class="lede" id="progress-status">
-    Waiting for the bookmarklet to start — keep the other tab open, this one will fill in as it goes.
+    Waiting for the bookmarklet to start — keep the other tab open too.
   </p>
 
-  <div class="panel">
+  <div class="panel" id="progress-panel">
     <div class="progress-track">
       <div id="progress-bar-fill" class="progress-fill" style="width:0%"></div>
     </div>
     <p class="hint" id="progress-count" style="margin-top:10px;">Nothing read yet.</p>
   </div>
 
-  <div class="preview-grid" id="preview-grid"></div>
-
-  <style>
-    .progress-track { background: var(--surface-2); border-radius: 999px; height: 10px; overflow: hidden; }
-    .progress-fill { background: linear-gradient(120deg, var(--accent-1), var(--accent-2)); height: 100%; transition: width .3s; }
-    .preview-grid { display: grid; grid-template-columns: 1fr; gap: 10px; margin-top: 20px; }
-    .preview-card {
-      background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
-      padding: 12px 16px; display: flex; align-items: center; gap: 12px;
-      animation: preview-in .25s ease-out;
-    }
-    @keyframes preview-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
-    .preview-card img { width: 44px; height: 44px; object-fit: cover; border-radius: 8px; flex: none; background: var(--surface-2); }
-    .preview-title { font-weight: 600; font-size: .88rem; }
-    .preview-price { margin-left: auto; font-weight: 700; color: var(--accent-1); font-size: .82rem; flex: none; }
-  </style>
+  <div class="grid" id="results-grid" style="margin-top:20px;"></div>
 
   <script>
-    var total = 0, done = 0;
-    window.addEventListener('message', function(e) {
-      var data = e.data || {};
-      if (data.type === 'progress') {
-        total = data.total || 0;
-        done = data.done || 0;
-        var pct = total ? Math.round((done / total) * 100) : 0;
-        document.getElementById('progress-bar-fill').style.width = pct + '%';
-        document.getElementById('progress-count').textContent = done + ' of ' + total + ' listings read';
-        document.getElementById('progress-status').textContent = 'This tab will switch to your formatted drafts once every listing is read.';
+    var target = {{ target|tojson }};
+    var targetLabel = target.charAt(0).toUpperCase() + target.slice(1);
+    var count = 0;
+
+    function buildCard(item) {
+      var title = (item.description || '').split('\n')[0].slice(0, 80) || '(untitled)';
+      var priceText = item.price != null ? ((item.currency || '') + ' ' + item.price) : '';
+      count++;
+      var id = 'draft-' + count;
+
+      var card = document.createElement('div');
+      card.className = 'card';
+
+      var head = document.createElement('div');
+      head.className = 'card-head';
+      var titleLink = document.createElement('a');
+      titleLink.className = 'card-title';
+      titleLink.href = item.url || '#';
+      titleLink.target = '_blank';
+      titleLink.textContent = title;
+      head.appendChild(titleLink);
+      if (priceText) {
+        var priceTag = document.createElement('span');
+        priceTag.className = 'price-tag';
+        priceTag.textContent = priceText;
+        head.appendChild(priceTag);
       }
-      if (data.type === 'item' && data.item) {
-        var item = data.item;
-        var title = (item.description || '(untitled)').split('\n')[0];
-        var price = item.price ? ((item.price.currencyIsoCode || '') + ' ' + item.price.priceAmount) : '';
-        var photo = (item.pictures && item.pictures[0] && item.pictures[0].originalUrl) || '';
-        var card = document.createElement('div');
-        card.className = 'preview-card';
-        if (photo) {
+      card.appendChild(head);
+
+      if (item.photos && item.photos.length) {
+        var photosDiv = document.createElement('div');
+        photosDiv.className = 'photos';
+        item.photos.forEach(function (src) {
+          var a = document.createElement('a');
+          a.href = src; a.target = '_blank';
           var img = document.createElement('img');
-          img.src = photo;
-          card.appendChild(img);
+          img.src = src; img.alt = '';
+          a.appendChild(img);
+          photosDiv.appendChild(a);
+        });
+        card.appendChild(photosDiv);
+      }
+
+      var draft = document.createElement('div');
+      draft.className = 'draft';
+      draft.id = id;
+      draft.textContent =
+        'Title: ' + title + '\n' +
+        'Description: ' + (item.description || '') + '\n' +
+        'Price: ' + priceText + '\n' +
+        'Brand: ' + (item.brand || '') + '\n' +
+        'Size: ' + (item.size || '') + '\n' +
+        'Condition: ' + (item.condition || '');
+      card.appendChild(draft);
+
+      var btn = document.createElement('button');
+      btn.className = 'copy-btn';
+      btn.textContent = 'Copy for ' + targetLabel;
+      btn.onclick = function () {
+        navigator.clipboard.writeText(document.getElementById(id).innerText);
+        var original = btn.textContent;
+        btn.textContent = 'Copied ✓';
+        btn.classList.add('copied');
+        setTimeout(function () { btn.textContent = original; btn.classList.remove('copied'); }, 1500);
+      };
+      card.appendChild(btn);
+
+      return card;
+    }
+
+    window.addEventListener('message', function (e) {
+      var data = e.data || {};
+
+      if (data.type === 'progress') {
+        var pct = data.total ? Math.round((data.done / data.total) * 100) : 0;
+        document.getElementById('progress-bar-fill').style.width = pct + '%';
+        document.getElementById('progress-count').textContent = data.done + ' of ' + data.total + ' listings read';
+        document.getElementById('progress-status').textContent = 'Drafts appear below as each listing is read.';
+      }
+
+      if (data.type === 'item' && data.item) {
+        document.getElementById('results-grid').appendChild(buildCard(data.item));
+      }
+
+      if (data.type === 'done') {
+        document.getElementById('progress-panel').style.display = 'none';
+        document.getElementById('progress-heading').textContent =
+          count + ' listing' + (count === 1 ? '' : 's') + (data.username ? ' from @' + data.username : '') + ', ready for ' + targetLabel;
+        document.getElementById('progress-status').innerHTML = '<a href="/">&larr; fetch a different shop</a>';
+        if (count === 0) {
+          var empty = document.createElement('p');
+          empty.className = 'empty';
+          empty.textContent = 'No listings found - the bookmarklet may not have been run from the right page, or the site layout changed.';
+          document.getElementById('results-grid').appendChild(empty);
         }
-        var t = document.createElement('span');
-        t.className = 'preview-title';
-        t.textContent = title;
-        card.appendChild(t);
-        var p = document.createElement('span');
-        p.className = 'preview-price';
-        p.textContent = price;
-        card.appendChild(p);
-        document.getElementById('preview-grid').prepend(card);
       }
     });
   </script>

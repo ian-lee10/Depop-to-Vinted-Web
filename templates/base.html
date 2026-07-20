@@ -124,6 +124,37 @@
       padding: 10px 14px; border-radius: 10px; font-size: .88rem; margin-bottom: 16px;
     }
     .hint { color: var(--text-dim); font-size: .8rem; margin-top: 6px; }
+
+    .grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
+    .card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); box-shadow: var(--shadow);
+      padding: 20px; overflow: hidden;
+      animation: card-in .25s ease-out;
+    }
+    @keyframes card-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+    .card-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+    .card-title { font-weight: 700; font-size: 1rem; text-decoration: none; color: var(--text); }
+    .price-tag {
+      flex: none; font-weight: 700; font-size: .85rem; color: #fff;
+      background: linear-gradient(120deg, var(--accent-1), var(--accent-3));
+      padding: 5px 12px; border-radius: 999px;
+    }
+    .photos { display: flex; gap: 8px; flex-wrap: wrap; margin: 14px 0; }
+    .photos a { display: block; border-radius: 10px; overflow: hidden; border: 1px solid var(--border); }
+    .photos img { width: 84px; height: 84px; object-fit: cover; display: block; transition: transform .15s; }
+    .photos img:hover { transform: scale(1.06); }
+    .draft {
+      white-space: pre-wrap; background: var(--surface-2); border: 1px solid var(--border);
+      padding: 14px; border-radius: 10px; font-size: .85rem; color: var(--text-dim);
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+    .copy-btn { margin-top: 14px; padding: 9px 18px; font-size: .82rem; }
+    .copy-btn.copied { background: linear-gradient(120deg, #22c55e, #16a34a); }
+    .empty { color: var(--text-dim); }
+
+    .progress-track { background: var(--surface-2); border-radius: 999px; height: 10px; overflow: hidden; }
+    .progress-fill { background: linear-gradient(120deg, var(--accent-1), var(--accent-2)); height: 100%; transition: width .3s; }
   </style>
 </head>
 <body>

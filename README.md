@@ -19,16 +19,17 @@ bookmarklets, one per direction:
 1. Drag the "Depop to Vinted" bookmarklet to your bookmarks bar.
 2. Go to **your own Depop shop page** (`depop.com/yourusername` — the page
    showing your listing grid).
-3. Click the bookmark. It scrolls through your shop to pick up every
-   listing, reads each product's own page, and shows the formatted drafts
-   right in that tab.
+3. Click the bookmark. It immediately opens a second tab that fills in
+   live as it goes: a progress bar, then each listing's draft card
+   (photos, copy/paste text, a working copy button) as it's read. Your
+   Depop tab is left untouched throughout.
 
 **Vinted → Depop**
 1. Drag the "Vinted to Depop" bookmarklet to your bookmarks bar.
 2. Go to **your own Vinted closet page** (your profile — the page showing
    your listing grid).
-3. Click the bookmark. Same idea: scrolls, reads each item's page, shows
-   Depop-ready drafts in that tab.
+3. Click the bookmark. Same idea: a live-updating tab opens immediately,
+   filling in with Depop-ready drafts as each item is read.
 
 ## Run it locally
 
@@ -58,8 +59,9 @@ read with a plain server-side request:
 
 So both bookmarklets read the shop/closet grid from the already-rendered
 live DOM (scrolling first, since both lazy-load more items as you scroll),
-then do a same-origin `fetch()` — no CORS involved, same origin as the page
-— to each item's own page and parse out the draft fields:
+then fetch each item's page **one at a time, with a short pause between
+requests** — same-origin, no CORS involved — and parse out the draft
+fields:
 
 - **Depop**: parses title/description text, the brand attribute link, and
   photos with `DOMParser`, using CSS-module class-name substrings since
@@ -68,9 +70,20 @@ then do a same-origin `fetch()` — no CORS involved, same origin as the page
   (name, description, price, brand) plus `data-testid="item-attributes-*"`
   fields for size/condition — much cleaner structured data than Depop's.
 
-The server side (`/from-browser`) never talks to either marketplace — it
-only receives the already-extracted data from whichever bookmarklet ran and
-formats it for display.
+As each item is read, the bookmarklet `postMessage`s it to a window it
+opened at the very start (synchronously, in direct response to the click,
+so popup blockers allow it) - that window, served at `/progress`, renders
+each draft live as it arrives with a working copy button. The server never
+talks to either marketplace and never sees the scraped data at all beyond
+serving that one static-ish page; everything after the initial load is
+pure client-side rendering in the browser.
+
+The one-at-a-time throttling matters: firing every request at once
+(`Promise.all`) is a big enough burst to trip Vinted's rate limiter (hit
+this myself during testing) - when that happens the fetched page is a
+block page with no product data, so the extractors are written to return
+`null` rather than a fake zeroed-out listing when the expected data isn't
+there.
 
 ## What's not available
 
@@ -92,10 +105,10 @@ formats it for display.
 - **No credentials involved at all** — nothing here ever sees a password or
   session cookie for either site; it only reads pages that are public
   anyway.
-- **Not hardened for high-volume public hosting** — `/from-browser` has a
-  basic per-IP rate limit and a request-size cap, but no auth. Fine for a
-  personal tool shared with friends; add real rate limiting/auth in front
-  of it before pointing serious traffic at it.
+- **Nothing for the server to abuse** — since results are rendered
+  entirely client-side from data the bookmarklet already extracted, there's
+  no endpoint that accepts arbitrary scraped data and processes it
+  server-side.
 
 ## If either marketplace changes its page layout
 
@@ -108,7 +121,7 @@ The scraping logic for both directions lives in `app.py`, in
   `data-testid="item-attributes-*"` selectors.
 
 These are the most likely things to break if either site ships a redesign.
-`listings.py::format_listing` just reshapes whatever the relevant
-bookmarklet already extracted, regardless of source; `test_listings.py` has
-a self-check to run after changing either bookmarklet or `format_listing`:
-`python test_listings.py`.
+The card-rendering logic (title/draft-text assembly, copy button) lives in
+`templates/progress.html`'s `<script>` block and expects the flat item
+shape both bookmarklets already extract: `{url, description, price,
+currency, brand, size, condition, photos}`.
