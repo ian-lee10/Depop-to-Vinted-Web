@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Depop ⇄ Vinted cross-lister",
   "version": "1.0.0",
-  "description": "One click on your Depop shop or Vinted closet turns every listing into copy/paste-ready drafts for the other site. No login, no automation.",
+  "description": "Turn your Depop shop or Vinted closet into copy/paste-ready drafts for the other site. One click. No login, no automation.",
   "icons": { "128": "icon128.png" },
   "action": {
     "default_title": "Cross-list this shop / closet",
