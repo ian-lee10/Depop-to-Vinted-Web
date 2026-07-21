@@ -34,6 +34,14 @@ bookmarklets, one per direction:
 3. Click the bookmark. Same idea: a live-updating tab opens immediately,
    filling in with Depop-ready drafts as each item is read.
 
+### Prefer a one-click button? Use the extension
+
+The bookmarklet's drag-to-bookmarks-bar step trips up a lot of people. The
+`extension/` folder is a Chrome/Edge extension that does the exact same
+thing as a toolbar button — no bookmarks bar needed. Load it unpacked in
+seconds, or publish it to the Chrome Web Store. See
+[extension/README.md](extension/README.md).
+
 ## Run it locally
 
 ```bash

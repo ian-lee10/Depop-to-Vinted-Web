@@ -25,6 +25,30 @@
 
   {% if error %}<p class="error">{{ error }}</p>{% endif %}
 
+  <div class="how">
+    <div class="how-step">
+      <span class="how-num">1</span>
+      <div>
+        <strong>Click the bookmark on your shop page</strong>
+        <span>One click reads every listing you have — right from your own logged-in tab.</span>
+      </div>
+    </div>
+    <div class="how-step">
+      <span class="how-num">2</span>
+      <div>
+        <strong>Watch drafts build in real time</strong>
+        <span>A new tab fills in live: photos, description, and each field ready to go.</span>
+      </div>
+    </div>
+    <div class="how-step">
+      <span class="how-num">3</span>
+      <div>
+        <strong>Copy each field into the other site</strong>
+        <span>Per-field copy buttons drop straight into the new listing form. You publish.</span>
+      </div>
+    </div>
+  </div>
+
   <div class="directions">
     <div class="panel direction-panel">
       <div class="direction-head">
@@ -68,6 +92,12 @@
   </p>
 
   <style>
+    .how { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 28px; }
+    @media (max-width: 720px) { .how { grid-template-columns: 1fr; } }
+    .how-step { display: flex; gap: 12px; align-items: flex-start; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; }
+    .how-num { flex: none; width: 26px; height: 26px; border-radius: 999px; display: grid; place-items: center; font-weight: 800; font-size: .82rem; color: #fff; background: linear-gradient(120deg, var(--accent-1), var(--accent-2)); }
+    .how-step strong { display: block; font-size: .9rem; margin-bottom: 3px; }
+    .how-step span { font-size: .82rem; color: var(--text-dim); }
     .directions { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
     @media (max-width: 720px) { .directions { grid-template-columns: 1fr; } }
     .direction-panel { display: flex; flex-direction: column; }

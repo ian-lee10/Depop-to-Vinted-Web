@@ -26,6 +26,11 @@ app = Flask(__name__)
 # as it arrives, with a working copy button, and never needs a server round
 # trip: everything after the initial page load is pure client-side
 # rendering of data the bookmarklet already extracted.
+#
+# NOTE: the browser extension in extension/ ships copies of these two script
+# bodies (extension/depop.js, extension/vinted.js) with __BASE_URL__ hard-
+# coded to the production URL. If you change the scraping logic here,
+# regenerate those two files (see extension/README.md) so they don't drift.
 DEPOP_BOOKMARKLET_TEMPLATE = """(function(){
 var __m = location.pathname.match(/^\\/([A-Za-z0-9_.-]+)\\/?$/);
 var username = __m ? __m[1] : (prompt('Your Depop username?') || 'your-shop');
