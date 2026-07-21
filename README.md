@@ -1,6 +1,6 @@
 # Depop ⇄ Vinted draft assistant
 
-**Live: https://depop-to-vinted-web.onrender.com**
+**Live: https://crosslister.onrender.com**
 
 Reads your active listings on one marketplace and formats each one as
 copy/paste-ready text (title, description, price, brand, size, condition)
@@ -12,7 +12,7 @@ shop/closet pages and never writes to either marketplace.
 
 ## Using it
 
-The [live site](https://depop-to-vinted-web.onrender.com) gives you two
+The [live site](https://crosslister.onrender.com) gives you two
 bookmarklets, one per direction:
 
 **Depop → Vinted**
