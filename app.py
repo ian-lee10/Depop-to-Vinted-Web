@@ -269,7 +269,16 @@ notify({type:'done', username:username});
 def index():
     depop_bookmarklet = "javascript:" + DEPOP_BOOKMARKLET_TEMPLATE.replace("__BASE_URL__", request.url_root).replace("\n", " ")
     vinted_bookmarklet = "javascript:" + VINTED_BOOKMARKLET_TEMPLATE.replace("__BASE_URL__", request.url_root).replace("\n", " ")
-    return render_template("index.html", depop_bookmarklet=depop_bookmarklet, vinted_bookmarklet=vinted_bookmarklet)
+    # Set CHROME_STORE_URL in the environment once the extension is approved -
+    # the "Add to Chrome" button flips from "coming soon" to a live link, no
+    # code change needed (just a Render env var + restart).
+    chrome_store_url = os.environ.get("CHROME_STORE_URL", "").strip()
+    return render_template(
+        "index.html",
+        depop_bookmarklet=depop_bookmarklet,
+        vinted_bookmarklet=vinted_bookmarklet,
+        chrome_store_url=chrome_store_url,
+    )
 
 
 @app.route("/progress")

@@ -23,6 +23,21 @@
     </span>
   </div>
 
+  <div class="cta-row">
+    {% if chrome_store_url %}
+    <a class="cta cta-primary" href="{{ chrome_store_url }}" target="_blank" rel="noopener">
+      <svg viewBox="0 0 20 20" fill="none"><path d="M10 6v8m-4-4h8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.5"/></svg>
+      Add to Chrome
+    </a>
+    {% else %}
+    <span class="cta cta-primary cta-disabled" title="Coming soon to the Chrome Web Store">
+      <svg viewBox="0 0 20 20" fill="none"><path d="M10 6v8m-4-4h8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.5"/></svg>
+      Add to Chrome — soon
+    </span>
+    {% endif %}
+    <a class="cta cta-secondary" href="/progress?demo=1&amp;target=depop" target="_blank" rel="noopener">See an example →</a>
+  </div>
+
   {% if error %}<p class="error">{{ error }}</p>{% endif %}
 
   <div class="how">
@@ -92,6 +107,14 @@
   </p>
 
   <style>
+    .cta-row { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-bottom: 28px; }
+    .cta { display: inline-flex; align-items: center; gap: 8px; font-weight: 700; font-size: .92rem; text-decoration: none; padding: 12px 20px; border-radius: 10px; }
+    .cta svg { width: 18px; height: 18px; flex: none; }
+    .cta-primary { color: #fff; background: linear-gradient(120deg, var(--accent-1), var(--accent-2)); box-shadow: 0 6px 20px rgba(109,92,245,.35); }
+    .cta-primary:hover { filter: brightness(1.08); }
+    .cta-disabled { opacity: .55; cursor: default; box-shadow: none; filter: none; }
+    .cta-secondary { color: var(--text); background: var(--surface); border: 1px solid var(--border); }
+    .cta-secondary:hover { background: var(--surface-2); }
     .how { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 28px; }
     @media (max-width: 720px) { .how { grid-template-columns: 1fr; } }
     .how-step { display: flex; gap: 12px; align-items: flex-start; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; }
