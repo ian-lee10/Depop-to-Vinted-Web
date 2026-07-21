@@ -11,7 +11,7 @@ upload; the copy below is paste-ready.
 - `store-assets/promo-small-440x280.png` — small promo tile (440×280).
 - `store-assets/promo-marquee-1400x560.png` — marquee promo tile (1400×560).
 - Privacy policy URL (required for these permissions):
-  **https://crosslister.onrender.com/privacy**
+  **https://reflip-7xac.onrender.com/privacy**
 
 ## Listing page — every field, paste-ready
 
@@ -23,7 +23,7 @@ upload; the copy below is paste-ready.
 | **Screenshots** | `store-assets/1-results.png`, `store-assets/2-landing.png` (1280×800) |
 | **Small promo tile** | `store-assets/promo-small-440x280.png` |
 | **Marquee promo tile** | `store-assets/promo-marquee-1400x560.png` |
-| **Homepage URL** | https://crosslister.onrender.com |
+| **Homepage URL** | https://reflip-7xac.onrender.com |
 | **Support URL** | https://github.com/ian-lee10/Depop-to-Vinted-Web/issues |
 | **Official URL** | Leave blank — it requires verifying ownership of the domain in Google Search Console, and `onrender.com` isn't a domain you can verify. Optional field; skip it. |
 
@@ -102,5 +102,5 @@ server. (Do not check any of the "collects" boxes.)
 
 **Privacy policy URL:**
 ```
-https://crosslister.onrender.com/privacy
+https://reflip-7xac.onrender.com/privacy
 ```

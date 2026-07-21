@@ -3,7 +3,7 @@
 // just bundled here so it works without a bookmarks bar and passes Chrome's
 // no-remote-code rule). depop.js / vinted.js are generated from app.py's
 // bookmarklet templates - keep them in sync.
-const HOMEPAGE = "https://crosslister.onrender.com/";
+const HOMEPAGE = "https://reflip-7xac.onrender.com/";
 
 chrome.action.onClicked.addListener(async (tab) => {
   const url = tab.url || "";
