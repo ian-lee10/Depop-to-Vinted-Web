@@ -3,13 +3,32 @@
 Everything the store asks for is ready in this folder. You do the account +
 upload; the copy below is paste-ready.
 
-**Already prepared for you:**
+**Already prepared for you (all in this folder):**
 - `../extension.zip` — the exact package to upload.
+- `icon128.png` — the store icon (128×128).
 - `store-assets/1-results.png`, `store-assets/2-landing.png` — 1280×800
   screenshots (the store requires at least one; these two are enough).
-- `icon128.png` — the store icon.
+- `store-assets/promo-small-440x280.png` — small promo tile (440×280).
+- `store-assets/promo-marquee-1400x560.png` — marquee promo tile (1400×560).
 - Privacy policy URL (required for these permissions):
   **https://depop-to-vinted-web.onrender.com/privacy**
+
+## Listing page — every field, paste-ready
+
+| Field | Value |
+|---|---|
+| **Store icon** | `icon128.png` (128×128) |
+| **Category** | Shopping |
+| **Language** | English (United States) |
+| **Screenshots** | `store-assets/1-results.png`, `store-assets/2-landing.png` (1280×800) |
+| **Small promo tile** | `store-assets/promo-small-440x280.png` |
+| **Marquee promo tile** | `store-assets/promo-marquee-1400x560.png` |
+| **Homepage URL** | https://depop-to-vinted-web.onrender.com |
+| **Support URL** | https://github.com/ian-lee10/Depop-to-Vinted-Web/issues |
+| **Official URL** | Leave blank — it requires verifying ownership of the domain in Google Search Console, and `onrender.com` isn't a domain you can verify. Optional field; skip it. |
+
+"Global assets" in the dashboard is just the umbrella section that holds the
+store icon + screenshots + promo tiles above — nothing separate to add.
 
 ## Steps
 
