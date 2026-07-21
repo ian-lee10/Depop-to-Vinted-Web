@@ -154,5 +154,25 @@
         }
       }
     });
+
+    // Demo mode (?demo=1): render a couple of sample drafts so people can see
+    // what the output looks like without running the bookmarklet. Also used to
+    // generate the Chrome Web Store screenshots.
+    if (new URLSearchParams(location.search).get('demo') === '1') {
+      var demo = [
+        { url:'#', description:'Vintage Nike windbreaker\nY2K colourblock windbreaker, barely worn, size L. Detailed zip and working drawcord.',
+          price:32, currency:'USD', brand:'Nike', size:'L', condition:'Very good',
+          photos:['https://picsum.photos/seed/jkt1/200','https://picsum.photos/seed/jkt2/200','https://picsum.photos/seed/jkt3/200'] },
+        { url:'#', description:"Levi's 501 vintage jeans\nClassic mid-wash straight leg, W32 L30.",
+          price:28, currency:'USD', brand:"Levi's", size:'32', condition:'Good',
+          photos:['https://picsum.photos/seed/jean1/200','https://picsum.photos/seed/jean2/200'] },
+        { url:'#', description:'Carhartt beanie\nBlack ribbed watch cap, one size.',
+          price:12, currency:'USD', brand:'Carhartt', size:'One size', condition:'New without tags',
+          photos:['https://picsum.photos/seed/beanie/200'] }
+      ];
+      window.postMessage({ type:'progress', done:demo.length, total:demo.length, username:'yourshop' }, location.origin);
+      demo.forEach(function (it) { window.postMessage({ type:'item', item:it }, location.origin); });
+      window.postMessage({ type:'done', username:'yourshop' }, location.origin);
+    }
   </script>
 {% endblock %}

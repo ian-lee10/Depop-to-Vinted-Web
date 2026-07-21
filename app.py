@@ -281,5 +281,10 @@ def progress():
     return render_template("progress.html", target=target, username=username)
 
 
+@app.route("/privacy")
+def privacy():
+    return render_template("privacy.html")
+
+
 if __name__ == "__main__":
     app.run(debug=bool(os.environ.get("FLASK_DEBUG")), host="0.0.0.0", port=int(os.environ.get("PORT", 5050)))

@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block body %}
+  <h1>Privacy</h1>
+  <p class="lede">Short version: this tool reads only your own public shop/closet
+  pages, in your own browser, and sends none of it to us.</p>
+
+  <div class="panel" style="margin-top:8px;">
+    <div class="prose">
+      <h2>What it does</h2>
+      <p>The bookmarklet and the browser extension run entirely in your own
+      browser tab while you are on your own Depop shop page or Vinted closet
+      page. They read the listing information that is already publicly visible
+      on those pages (title, description, price, brand, size, condition, and
+      photo URLs) and format it into copy/paste-ready drafts.</p>
+
+      <h2>What we collect</h2>
+      <p><strong>Nothing.</strong> Your listing data is processed and displayed
+      entirely in your browser. It is never sent to, stored on, or logged by
+      this website's server. There are no accounts, and we never ask for or
+      handle any Depop or Vinted login, password, or cookie.</p>
+
+      <h2>Permissions the extension asks for</h2>
+      <ul>
+        <li><strong>Access to depop.com and vinted.com</strong> — so the button
+        can read the listings on the shop/closet page you are viewing. It does
+        nothing on any other site.</li>
+        <li><strong>Scripting</strong> — to run the read-and-format script on
+        that page when you click the button.</li>
+      </ul>
+      <p>It has no access to your browsing history, other tabs, or any other
+      website.</p>
+
+      <h2>Third parties</h2>
+      <p>No analytics, no trackers, no advertising, no data sharing. The site is
+      hosted on Render, which sees standard web-server request logs (IP address,
+      timestamp) as any website's host does; those logs contain none of your
+      listing data.</p>
+
+      <h2>Contact</h2>
+      <p>Questions? Reach out via the GitHub repository linked from the tool.</p>
+    </div>
+  </div>
+
+  <p class="hint" style="margin-top:18px;"><a href="/">&larr; back</a></p>
+
+  <style>
+    .prose h2 { font-size: 1rem; margin: 22px 0 6px; }
+    .prose h2:first-child { margin-top: 0; }
+    .prose p, .prose li { color: var(--text-dim); font-size: .92rem; }
+    .prose ul { padding-left: 20px; }
+    .prose strong { color: var(--text); }
+  </style>
+{% endblock %}

@@ -1,0 +1,87 @@
+# Publishing to the Chrome Web Store — everything's prepped
+
+Everything the store asks for is ready in this folder. You do the account +
+upload; the copy below is paste-ready.
+
+**Already prepared for you:**
+- `../extension.zip` — the exact package to upload.
+- `store-assets/1-results.png`, `store-assets/2-landing.png` — 1280×800
+  screenshots (the store requires at least one; these two are enough).
+- `icon128.png` — the store icon.
+- Privacy policy URL (required for these permissions):
+  **https://depop-to-vinted-web.onrender.com/privacy**
+
+## Steps
+
+1. Go to the **[Chrome Web Store Developer Dashboard](https://chrome.google.com/webstore/devconsole)**
+   and sign in with the Google account you want to own the extension.
+2. Pay the **one-time $5 registration fee** (Google requires it — I can't do
+   this for you). You may also need to verify your identity/contact email.
+3. Click **Add new item** and upload **`extension.zip`**.
+4. Fill in the listing using the paste-ready text below.
+5. Upload the two screenshots from `store-assets/`.
+6. Complete the **Privacy** tab (answers below) and add the privacy policy URL.
+7. **Submit for review.** Review typically takes a few days. Once approved you
+   get a public page with an **Add to Chrome** button — put that link on the
+   site and share it.
+
+---
+
+## Paste-ready listing text
+
+**Name**
+```
+Depop ⇄ Vinted cross-lister
+```
+
+**Summary** (short description, max 132 chars)
+```
+One click turns your Depop shop or Vinted closet into copy/paste-ready drafts for the other site. No login, no automation.
+```
+
+**Detailed description**
+```
+Cross-listing the same items on Depop and Vinted means re-typing everything twice. This does the boring part.
+
+Click the toolbar button while you're on your own Depop shop page or Vinted closet page. It reads every one of your listings and opens a tab that fills in live — each listing's photos, description, price, brand, size, and condition — formatted for the other marketplace, with a copy button next to every field so you can drop each straight into the new listing form.
+
+• Works both directions: Depop → Vinted and Vinted → Depop
+• No login, no password, no cookies — it only reads pages you're already viewing
+• Nothing is posted or changed on either site; you review and publish yourself
+• Nothing is sent to any server — it all runs in your own browser
+
+It only runs on depop.com and vinted.com, and only when you click it.
+```
+
+**Category:** Shopping
+**Language:** English
+
+---
+
+## Privacy tab answers
+
+**Single purpose**
+```
+Reads the user's own Depop shop or Vinted closet listings that are already displayed on the page and formats them into copy/paste-ready drafts for the other marketplace.
+```
+
+**Permission justifications**
+- `host_permissions` (depop.com, vinted.com):
+  ```
+  The extension only functions on the user's own Depop shop and Vinted closet pages. It needs to read the listing data rendered on those pages to format it for the other marketplace. It does nothing on any other site.
+  ```
+- `scripting`:
+  ```
+  Used to run the read-and-format script on the current shop/closet tab when the user clicks the toolbar button.
+  ```
+
+**Remote code:** No — all code is included in the package.
+
+**Data usage:** Check that the extension does **not** collect or use any user
+data. It processes listing data locally in the browser and sends nothing to any
+server. (Do not check any of the "collects" boxes.)
+
+**Privacy policy URL:**
+```
+https://depop-to-vinted-web.onrender.com/privacy
+```
