@@ -50,7 +50,7 @@ store icon + screenshots + promo tiles above — nothing separate to add.
 
 **Name**
 ```
-Depop ⇄ Vinted cross-lister
+ReFlip — Depop ⇄ Vinted cross-lister
 ```
 
 **Summary** (short description, max 132 chars)
