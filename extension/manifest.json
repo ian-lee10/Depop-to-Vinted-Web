@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "ReFlip — Depop ⇄ Vinted cross-lister",
+  "name": "ReFlip",
   "version": "1.0.1",
   "description": "Turn your Depop shop or Vinted closet into copy/paste-ready drafts for the other site. One click. No login, no automation.",
   "icons": { "128": "icon128.png" },

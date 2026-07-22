@@ -50,17 +50,17 @@ store icon + screenshots + promo tiles above — nothing separate to add.
 
 **Name**
 ```
-ReFlip — Depop ⇄ Vinted cross-lister
+ReFlip
 ```
 
 **Summary** (short description, max 132 chars)
 ```
-One click turns your Depop shop or Vinted closet into copy/paste-ready drafts for the other site. No login, no automation.
+ReFlip cross-lists your Depop shop or Vinted closet into copy/paste-ready drafts for the other site. No login, no automation.
 ```
 
 **Detailed description**
 ```
-Cross-listing the same items on Depop and Vinted means re-typing everything twice. This does the boring part.
+ReFlip cross-lists your items between Depop and Vinted, so you don't have to re-type everything twice.
 
 Click the toolbar button while you're on your own Depop shop page or Vinted closet page. It reads every one of your listings and opens a tab that fills in live — each listing's photos, description, price, brand, size, and condition — formatted for the other marketplace, with a copy button next to every field so you can drop each straight into the new listing form.
 
