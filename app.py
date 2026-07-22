@@ -1,8 +1,16 @@
 import os
+import re
+from urllib.parse import urlparse
 
-from flask import Flask, render_template, request
+import requests
+from flask import Flask, Response, abort, render_template, request
 
 app = Flask(__name__)
+
+# Only these two image CDNs may be proxied for download (see /photo). Locking
+# it to an allowlist keeps the endpoint from being usable as an open proxy /
+# SSRF vector - it can only ever fetch Depop or Vinted listing photos.
+ALLOWED_IMAGE_HOSTS = {"media-photos.depop.com", "images1.vinted.net"}
 
 # Both bookmarklets below run in the user's own browser while they're
 # already on their shop/closet page, not on this server. Neither Depop nor
@@ -293,6 +301,40 @@ def progress():
 @app.route("/privacy")
 def privacy():
     return render_template("privacy.html")
+
+
+@app.route("/photo")
+def photo():
+    # Force-download a listing photo. Needed because Vinted's image CDN sends
+    # no CORS headers, so the browser can't fetch/download those images itself;
+    # proxying server-side sidesteps that. Locked to ALLOWED_IMAGE_HOSTS so it
+    # can't be turned into an open proxy.
+    u = request.args.get("u", "")
+    parsed = urlparse(u)
+    if parsed.scheme != "https" or parsed.hostname not in ALLOWED_IMAGE_HOSTS:
+        abort(400)
+
+    try:
+        upstream = requests.get(u, timeout=20, stream=True)
+        upstream.raise_for_status()
+    except requests.RequestException:
+        abort(502)
+
+    content_type = upstream.headers.get("Content-Type", "image/jpeg")
+    ext = ".png" if "png" in content_type else ".webp" if "webp" in content_type else ".jpg"
+    raw_name = request.args.get("name", "photo")
+    safe = re.sub(r"[^A-Za-z0-9._-]+", "-", raw_name).strip("-")[:60] or "photo"
+    if not safe.lower().endswith((".jpg", ".jpeg", ".png", ".webp")):
+        safe += ext
+
+    return Response(
+        upstream.iter_content(chunk_size=8192),
+        headers={
+            "Content-Type": content_type,
+            "Content-Disposition": f'attachment; filename="{safe}"',
+            "Cache-Control": "private, max-age=0, no-store",
+        },
+    )
 
 
 if __name__ == "__main__":

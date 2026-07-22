@@ -12,6 +12,8 @@
     <p class="hint" id="progress-count" style="margin-top:10px;">Nothing read yet.</p>
   </div>
 
+  <p class="hint" id="done-count" style="margin-top:0;"></p>
+
   <div class="grid" id="results-grid" style="margin-top:20px;"></div>
 
   <script>
@@ -24,6 +26,23 @@
       btn.textContent = '✓ Copied';
       btn.classList.add('copied');
       setTimeout(function () { btn.textContent = original; btn.classList.remove('copied'); }, 1200);
+    }
+
+    // Force-download each photo through the same-origin /photo proxy (which
+    // sets Content-Disposition: attachment). Staggered so the browser accepts
+    // the batch. Filenames are the listing title + index, so they land grouped.
+    function downloadPhotos(photos, title) {
+      var base = (title || 'photo');
+      photos.forEach(function (url, i) {
+        setTimeout(function () {
+          var a = document.createElement('a');
+          a.href = '/photo?u=' + encodeURIComponent(url) + '&name=' + encodeURIComponent(base + '-' + (i + 1));
+          a.download = '';
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+        }, i * 400);
+      });
     }
 
     function copyButton(text, small) {
@@ -89,6 +108,16 @@
           photosDiv.appendChild(a);
         });
         card.appendChild(photosDiv);
+
+        var dl = document.createElement('button');
+        dl.className = 'field-copy-btn dl-btn';
+        dl.textContent = '⬇ Download all ' + item.photos.length + ' photo' + (item.photos.length === 1 ? '' : 's');
+        dl.onclick = function () { downloadPhotos(item.photos, title); flashCopied(dl); };
+        card.appendChild(dl);
+        var dlHint = document.createElement('div');
+        dlHint.className = 'hint dl-hint';
+        dlHint.textContent = 'Saves to your Downloads folder — then drag them into the new listing.';
+        card.appendChild(dlHint);
       }
 
       var descBlock = document.createElement('div');
@@ -122,9 +151,30 @@
         'Brand: ' + (item.brand || '') + '\n' +
         'Size: ' + (item.size || '') + '\n' +
         'Condition: ' + (item.condition || '');
-      card.appendChild(copyButton(fullDraft, false));
+
+      var actions = document.createElement('div');
+      actions.className = 'card-actions';
+      actions.appendChild(copyButton(fullDraft, false));
+
+      var doneBtn = document.createElement('button');
+      doneBtn.className = 'done-btn';
+      doneBtn.textContent = 'Mark done';
+      doneBtn.onclick = function () {
+        var done = card.classList.toggle('done');
+        doneBtn.textContent = done ? 'Done ✓ — undo' : 'Mark done';
+        updateDoneCount();
+      };
+      actions.appendChild(doneBtn);
+      card.appendChild(actions);
 
       return card;
+    }
+
+    function updateDoneCount() {
+      var total = document.querySelectorAll('#results-grid .card').length;
+      var done = document.querySelectorAll('#results-grid .card.done').length;
+      var el = document.getElementById('done-count');
+      if (el) el.textContent = done ? (done + ' of ' + total + ' marked done') : '';
     }
 
     window.addEventListener('message', function (e) {
