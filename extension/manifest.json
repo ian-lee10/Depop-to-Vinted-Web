@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "ReFlip",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Turn your Depop shop or Vinted closet into copy/paste-ready drafts for the other site. One click. No login, no automation.",
   "icons": { "128": "icon128.png" },
   "action": {
